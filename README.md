@@ -1,6 +1,6 @@
-## 📋 Skill-Spec
+## 📋 Skill-Spec —— The Factory for Claude Skills
 
-**Turn Vague "Vibes" into Industrial-Grade Agent Skills. The Factory for Claude Skills**
+**Turn Vague "Vibes" into Industrial-Grade Agent Skills.**
 
 ---
 
