@@ -1,0 +1,244 @@
+# Forbidden Patterns - English
+# These patterns indicate missing decision criteria in skill specifications
+
+version: "1.0"
+language: "en"
+
+patterns:
+  # VAGUE_CONDITION - Ambiguous conditions
+  - pattern: "as needed"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Replace with explicit condition in decision_rules"
+
+  - pattern: "if appropriate"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define what 'appropriate' means with a measurable condition"
+
+  - pattern: "when necessary"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Specify exactly when this action is necessary"
+
+  - pattern: "where applicable"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define the specific cases where this applies"
+
+  - pattern: "if needed"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define the specific condition that triggers this need"
+
+  - pattern: "as required"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Specify what determines the requirement"
+
+  # VAGUE_ACTION - Weak action verbs
+  - pattern: "try to"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Remove 'try to' and state the definite action"
+
+  - pattern: "attempt to"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Remove 'attempt to' and state the definite action"
+
+  - pattern: "\\bhelp\\b"
+    category: VAGUE_ACTION
+    severity: error
+    regex: true
+    context: "action"
+    fix: "Replace with specific action (e.g., 'extract', 'generate', 'analyze')"
+
+  - pattern: "\\bassist\\b"
+    category: VAGUE_ACTION
+    severity: error
+    regex: true
+    context: "action"
+    fix: "Replace with specific action"
+
+  - pattern: "\\bsupport\\b"
+    category: VAGUE_ACTION
+    severity: warning
+    regex: true
+    context: "action"
+    fix: "Replace with specific action or capability"
+
+  # VAGUE_DEGREE - Uncertainty qualifiers
+  - pattern: "\\bgenerally\\b"
+    category: VAGUE_DEGREE
+    severity: error
+    regex: true
+    context: "any"
+    fix: "Remove or specify the exact cases"
+
+  - pattern: "\\btypically\\b"
+    category: VAGUE_DEGREE
+    severity: error
+    regex: true
+    context: "any"
+    fix: "Remove or specify the exact cases"
+
+  - pattern: "\\busually\\b"
+    category: VAGUE_DEGREE
+    severity: error
+    regex: true
+    context: "any"
+    fix: "Remove or specify the exact cases"
+
+  - pattern: "\\boften\\b"
+    category: VAGUE_DEGREE
+    severity: warning
+    regex: true
+    context: "any"
+    fix: "Remove or specify frequency/condition"
+
+  - pattern: "\\bsometimes\\b"
+    category: VAGUE_DEGREE
+    severity: warning
+    regex: true
+    context: "any"
+    fix: "Specify when this happens"
+
+  - pattern: "in most cases"
+    category: VAGUE_DEGREE
+    severity: error
+    context: "any"
+    fix: "Specify the exact cases or make universal"
+
+  # HEDGE_WORDS - Hedging language
+  - pattern: "\\bmight\\b"
+    category: HEDGE_WORDS
+    severity: warning
+    regex: true
+    context: "any"
+    fix: "State definite outcome or add decision rule"
+
+  - pattern: "\\bcould\\b"
+    category: HEDGE_WORDS
+    severity: warning
+    regex: true
+    context: "any"
+    fix: "State definite outcome or add decision rule"
+
+  - pattern: "\\bmay\\b"
+    category: HEDGE_WORDS
+    severity: warning
+    regex: true
+    context: "any"
+    fix: "State definite outcome or add decision rule"
+
+  - pattern: "should consider"
+    category: HEDGE_WORDS
+    severity: warning
+    context: "any"
+    fix: "Either 'must' or remove"
+
+  - pattern: "\\bprobably\\b"
+    category: HEDGE_WORDS
+    severity: warning
+    regex: true
+    context: "any"
+    fix: "Remove uncertainty or add confidence threshold"
+
+  # WEAK_VERBS - Weak action verbs
+  - pattern: "\\bconsider\\b"
+    category: WEAK_VERBS
+    severity: warning
+    regex: true
+    context: "action"
+    fix: "Replace with specific action (evaluate, check, validate)"
+
+  - pattern: "\\bensure\\b"
+    category: WEAK_VERBS
+    severity: warning
+    regex: true
+    context: "action"
+    fix: "Replace with specific validation step"
+
+  - pattern: "make sure"
+    category: WEAK_VERBS
+    severity: warning
+    context: "action"
+    fix: "Replace with specific validation step"
+
+  - pattern: "\\bverify\\b"
+    category: WEAK_VERBS
+    severity: warning
+    regex: true
+    context: "action"
+    fix: "Specify what to verify and how"
+
+  # UNMEASURABLE_QUALITY - Non-measurable descriptors
+  - pattern: "\\bgood\\b"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    regex: true
+    context: "quality"
+    fix: "Define measurable criteria"
+
+  - pattern: "\\bbetter\\b"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    regex: true
+    context: "quality"
+    fix: "Define comparison criteria"
+
+  - pattern: "\\bbest\\b"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    regex: true
+    context: "quality"
+    fix: "Define selection criteria"
+
+  - pattern: "\\bappropriate\\b"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    regex: true
+    context: "quality"
+    fix: "Define what makes something appropriate"
+
+  - pattern: "\\bsuitable\\b"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    regex: true
+    context: "quality"
+    fix: "Define suitability criteria"
+
+  - pattern: "\\bproper\\b"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    regex: true
+    context: "quality"
+    fix: "Define what is proper"
+
+  # Additional patterns
+  - pattern: "analyze carefully"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Specify what to analyze and what criteria to use"
+
+  - pattern: "be careful"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Specify what to check or validate"
+
+  - pattern: "handle appropriately"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Define specific handling for each case"

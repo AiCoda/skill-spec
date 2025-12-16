@@ -1,0 +1,231 @@
+# Skill-Spec: Extract API Contract
+# Version: 1.0.0
+# A simple utility skill demonstrating spec-driven development
+
+spec_version: "skill-spec/1.0"
+
+_meta:
+  content_language: "en"
+  mixed_language_strategy: "en-only"
+
+skill:
+  name: "extract-api-contract"
+  version: "1.0.0"
+  purpose: "Extract structured API contract information from source code, documentation, or OpenAPI specifications"
+  owner: "platform-team"
+
+inputs:
+  - name: source_content
+    type: string
+    required: true
+    constraints: [not_empty, max_length_50000]
+    description: "Source code, documentation, or OpenAPI spec content to analyze"
+    tags: ["content:code"]
+
+  - name: source_type
+    type: string
+    required: true
+    constraints: [not_empty]
+    description: "Type of source content"
+    domain:
+      type: enum
+      values: ["openapi", "swagger", "code", "documentation"]
+
+  - name: output_format
+    type: string
+    required: false
+    description: "Desired output format for the contract"
+    domain:
+      type: enum
+      values: ["openapi3", "json-schema", "summary"]
+    default: "openapi3"
+
+preconditions:
+  - "Source content must be valid text (not binary)"
+  - "For code sources, the programming language must be identifiable"
+  - "For OpenAPI/Swagger, the specification must be parseable YAML or JSON"
+
+non_goals:
+  - "Generate implementation code from contracts"
+  - "Validate API implementations against contracts"
+  - "Perform security analysis on API endpoints"
+  - "Handle authentication or authorization logic"
+
+decision_rules:
+  - id: rule_openapi_source
+    when: "source_type == 'openapi' or source_type == 'swagger'"
+    then:
+      status: success
+      path: parse_openapi
+      action: "Parse and normalize OpenAPI specification"
+
+  - id: rule_code_source
+    when: "source_type == 'code'"
+    then:
+      status: success
+      path: analyze_code
+      action: "Extract API patterns from source code"
+
+  - id: rule_doc_source
+    when: "source_type == 'documentation'"
+    then:
+      status: success
+      path: parse_documentation
+      action: "Extract structured information from documentation"
+
+  - id: rule_default
+    is_default: true
+    when: true
+    then:
+      status: error
+      code: UNSUPPORTED_SOURCE
+
+steps:
+  - id: validate_input
+    action: "Validate source content is non-empty and parseable"
+    output: validated_content
+
+  - id: detect_format
+    action: "Detect specific format within source type"
+    output: detected_format
+    based_on: [validated_content]
+
+  - id: extract_endpoints
+    action: "Extract API endpoint definitions"
+    output: endpoints
+
+  - id: extract_schemas
+    action: "Extract data schemas and models"
+    output: schemas
+
+  - id: build_contract
+    action: "Assemble complete API contract"
+    output: api_contract
+    based_on: [endpoints, schemas]
+
+  - id: format_output
+    action: "Convert contract to requested output format"
+    output: formatted_contract
+    based_on: [api_contract]
+
+output_contract:
+  format: json
+  schema:
+    type: object
+    required: [status, contract]
+    properties:
+      status:
+        type: string
+        enum: [success, partial, error]
+      contract:
+        type: object
+        properties:
+          title:
+            type: string
+          version:
+            type: string
+          endpoints:
+            type: array
+            items:
+              type: object
+              properties:
+                method:
+                  type: string
+                path:
+                  type: string
+                summary:
+                  type: string
+          schemas:
+            type: object
+      warnings:
+        type: array
+        items:
+          type: string
+      error:
+        type: string
+
+failure_modes:
+  - code: INVALID_SOURCE
+    retryable: false
+    description: "Source content is not valid or parseable"
+
+  - code: UNSUPPORTED_SOURCE
+    retryable: false
+    description: "Source type is not supported"
+
+  - code: EXTRACTION_FAILED
+    retryable: true
+    description: "Failed to extract API information from source"
+
+  - code: FORMAT_ERROR
+    retryable: false
+    description: "Failed to convert to requested output format"
+
+edge_cases:
+  - case: empty_input
+    input:
+      source_content: ""
+      source_type: "openapi"
+    expected:
+      status: error
+      code: INVALID_SOURCE
+
+  - case: malformed_openapi
+    input:
+      source_content: "not: valid: yaml: {"
+      source_type: "openapi"
+    expected:
+      status: error
+      code: INVALID_SOURCE
+
+  - case: no_endpoints_found
+    input:
+      source_content: "# Just a comment"
+      source_type: "code"
+    expected:
+      status: partial
+      warnings: ["No API endpoints found in source"]
+
+  - case: partial_extraction
+    description: "When some endpoints can be extracted but others fail"
+    expected:
+      status: partial
+      warnings: ["Some endpoints could not be fully parsed"]
+
+context:
+  works_with:
+    - skill: "generate-api-client"
+      reason: "Use extracted contract to generate client SDKs"
+    - skill: "validate-api-implementation"
+      reason: "Verify implementation matches contract"
+
+  scenarios:
+    - name: "API Documentation Generation"
+      trigger: "New API endpoint added to codebase"
+    - name: "Contract-First Development"
+      trigger: "Starting new API service"
+
+examples:
+  - name: "Simple OpenAPI extraction"
+    input:
+      source_content: |
+        openapi: 3.0.0
+        info:
+          title: Pet Store API
+          version: 1.0.0
+        paths:
+          /pets:
+            get:
+              summary: List all pets
+      source_type: "openapi"
+      output_format: "summary"
+    output:
+      status: success
+      contract:
+        title: "Pet Store API"
+        version: "1.0.0"
+        endpoints:
+          - method: "GET"
+            path: "/pets"
+            summary: "List all pets"
+    explanation: "Extracts basic endpoint information from a minimal OpenAPI spec"

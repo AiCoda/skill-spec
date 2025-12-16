@@ -1,0 +1,97 @@
+# English Messages for Skill-Spec
+# Version: 1.0.0
+
+validation:
+  passed: "Validation PASSED"
+  failed: "Validation FAILED"
+  errors:
+    missing_field: "Missing required field: {field}"
+    invalid_type: "Invalid type for {field}: expected {expected}, got {actual}"
+    unknown_tag: "Unknown tag: {tag}"
+    deprecated_tag: "Tag '{tag}' is deprecated"
+    policy_violation: "Policy violation: {rule}"
+  warnings:
+    missing_recommended: "Missing recommended field: {field}"
+    low_coverage: "Low coverage score: {score}%"
+  summary:
+    total_errors: "Total Errors: {count}"
+    total_warnings: "Total Warnings: {count}"
+    structural_coverage: "Structural Coverage: {score}%"
+    behavioral_coverage: "Behavioral Coverage: {score}%"
+
+quality:
+  title: "Quality Analysis"
+  forbidden_pattern: "Forbidden pattern detected: {pattern}"
+  categories:
+    vague_condition: "Vague condition"
+    vague_action: "Vague action"
+    vague_degree: "Vague degree modifier"
+    hedge_word: "Hedge word"
+    weak_verb: "Weak verb"
+
+coverage:
+  title: "Coverage Analysis"
+  gap_found: "Coverage gap: {item}"
+  missing_edge_case: "Missing edge case for: {item}"
+  orphan_definition: "Orphan definition: {item}"
+
+compliance:
+  title: "Compliance Report"
+  policy_checked: "Policies checked: {policies}"
+  violation: "[{severity}] {rule}: {description}"
+  required_action: "Required action: {action}"
+
+diary:
+  title: "Diary Summary"
+  total_events: "Total Events: {count}"
+  test_runs: "Test Runs: {count}"
+  production_runs: "Production Runs: {count}"
+  success_rate: "Success Rate: {rate}%"
+  avg_duration: "Average Duration: {duration}ms"
+  last_test_run: "Last Test Run: {timestamp}"
+  last_production_run: "Last Production Run: {timestamp}"
+  no_events: "No events recorded"
+
+migration:
+  title: "Migration Guide"
+  success: "Migration completed successfully"
+  items_attention: "Items requiring attention:"
+  next_steps: "Next steps:"
+  step_review: "1. Review generated spec.yaml"
+  step_fill_todos: "2. Fill in all TODO markers"
+  step_define_rules: "3. Define decision_rules based on your skill logic"
+  step_validate: "4. Run: skillspec validate <name> --strict"
+  step_generate: "5. Run: skillspec generate <name> --force"
+
+cli:
+  skill_not_found: "Skill '{name}' not found"
+  file_not_found: "File not found: {path}"
+  invalid_format: "Invalid format: {format}"
+  created: "Created: {path}"
+  generated: "Generated: {path}"
+  published: "Published: {name}"
+  archived: "Archived: {name}"
+  pruned_events: "Pruned {count} events older than {days} days"
+
+sections:
+  purpose: "Purpose"
+  inputs: "Inputs"
+  prerequisites: "Prerequisites"
+  non_goals: "What This Skill Does NOT Do"
+  decision_criteria: "Decision Criteria"
+  workflow: "Workflow"
+  edge_cases: "Edge Cases"
+  output_format: "Output Format"
+  error_handling: "Error Handling"
+  works_with: "Works Well With"
+  limitations: "Limitations"
+  examples: "Examples"
+  when_to_use: "When to Use"
+
+report:
+  title: "Report: {name}"
+  summary: "Summary"
+  quality_analysis: "Quality Analysis"
+  coverage_analysis: "Coverage Analysis"
+  compliance_check: "Compliance Check"
+  evidence_summary: "Evidence Summary"

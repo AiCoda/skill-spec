@@ -1,0 +1,138 @@
+{# English SKILL.md Template for Skill-Spec #}
+{# Version: 2.0.0 - Anthropic Format Compliant #}
+---
+name: "{{ skill.name }}"
+description: "{{ skill.purpose }}{% if triggers %} Use when: {{ triggers | join(' | ') }}{% endif %}"
+---
+
+# {{ skill.name | replace('-', ' ') | title }}
+
+## Description
+
+{{ skill.purpose }}
+
+{% if non_goals %}
+**This skill does NOT:**
+{% for goal in non_goals %}
+- {{ goal }}
+{% endfor %}
+{% endif %}
+
+{% if context and context.scenarios %}
+## When to Use
+
+Use this skill when:
+{% for scenario in context.scenarios %}
+- {{ scenario.trigger }}
+{% endfor %}
+
+{% endif %}
+{% if preconditions %}
+Do NOT use when:
+{% for prereq in preconditions %}
+- Prerequisites not met: {{ prereq }}
+{% endfor %}
+{% endif %}
+
+## Instructions
+
+### Input Requirements
+
+{% if inputs %}
+{% for inp in inputs %}
+{{ loop.index }}. **{{ inp.name }}** ({{ 'required' if inp.required else 'optional' }}): {{ inp.description | default('') }}
+   - Type: `{{ inp.type }}`
+{% if inp.constraints %}   - Constraints: {{ inp.constraints | join(', ') }}{% endif %}
+{% if inp.domain and inp.domain.type == 'enum' %}   - Values: {{ inp.domain.values | join(', ') }}{% endif %}
+{% if inp.default is defined %}   - Default: `{{ inp.default }}`{% endif %}
+{% endfor %}
+{% endif %}
+
+### Execution Flow
+
+{% if steps %}
+{% for step in steps %}
+{{ loop.index }}. {{ step.action }}{% if step.output %} -> `{{ step.output }}`{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if decision_rules %}
+### Decision Rules
+
+| Condition | Action |
+|-----------|--------|
+{% for rule in decision_rules %}
+{% if rule.when is not true %}
+| `{{ rule.when }}` | {{ rule.then.action | default(rule.then.path | default('')) }} |
+{% endif %}
+{% endfor %}
+{% endif %}
+
+### Output Format
+
+```json
+{{ output_contract.schema | tojson(indent=2) }}
+```
+
+{% if examples %}
+## Examples
+
+{% for example in examples %}
+### Example {{ loop.index }}: {{ example.name }}
+
+**Input:**
+```json
+{{ example.input | tojson(indent=2) }}
+```
+
+**Output:**
+```json
+{{ example.output | tojson(indent=2) }}
+```
+
+{% if example.explanation %}
+{{ example.explanation }}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if edge_cases %}
+## Edge Cases
+
+| Case | Expected Behavior |
+|------|-------------------|
+{% for ec in edge_cases %}
+| {{ ec.case }}{% if ec.description %} - {{ ec.description }}{% endif %} | {{ ec.expected.status | default('') }}{% if ec.expected.code %} (`{{ ec.expected.code }}`){% endif %} |
+{% endfor %}
+{% endif %}
+
+## Limitations
+
+{% if non_goals %}
+{% for goal in non_goals %}
+{{ loop.index }}. {{ goal }}
+{% endfor %}
+{% else %}
+1. Static analysis only - cannot execute or evaluate runtime behavior
+2. Language support may be limited for certain programming languages
+3. Cannot access external systems or repositories
+{% endif %}
+
+{% if failure_modes %}
+## Error Codes
+
+| Code | Retryable | Description |
+|------|-----------|-------------|
+{% for fm in failure_modes %}
+| `{{ fm.code }}` | {{ 'Yes' if fm.retryable else 'No' }} | {{ fm.description | default('') }} |
+{% endfor %}
+{% endif %}
+
+{% if context and context.works_with %}
+## Related Skills
+
+{% for ref in context.works_with %}
+- **{{ ref.skill }}**: {{ ref.reason }}
+{% endfor %}
+{% endif %}

@@ -1,0 +1,308 @@
+# Skill-Spec: Document Generator
+# Version: 1.0.0
+# Chinese language skill demonstrating multi-language support
+
+spec_version: "skill-spec/1.0"
+
+_meta:
+  content_language: "zh"
+  mixed_language_strategy: "zh-primary"
+
+skill:
+  name: "document-generator"
+  version: "1.0.0"
+  purpose: "根据代码、API 规范或设计文档自动生成技术文档"
+  owner: "documentation-team"
+
+inputs:
+  - name: source_content
+    type: string
+    required: true
+    constraints: [not_empty, max_length_100000]
+    description: "源代码或规范内容，用于生成文档"
+    tags: ["content:code", "content:config"]
+
+  - name: source_type
+    type: string
+    required: true
+    description: "源内容的类型"
+    domain:
+      type: enum
+      values: ["code", "api_spec", "design_doc", "changelog"]
+
+  - name: doc_type
+    type: string
+    required: true
+    description: "要生成的文档类型"
+    domain:
+      type: enum
+      values: ["api_reference", "user_guide", "readme", "changelog", "architecture"]
+
+  - name: output_language
+    type: string
+    required: false
+    description: "输出文档的语言"
+    domain:
+      type: enum
+      values: ["zh", "en", "zh-en"]
+    default: "zh"
+
+  - name: include_examples
+    type: boolean
+    required: false
+    description: "是否在文档中包含示例代码"
+    default: true
+
+  - name: detail_level
+    type: string
+    required: false
+    description: "文档详细程度"
+    domain:
+      type: enum
+      values: ["brief", "standard", "detailed"]
+    default: "standard"
+
+preconditions:
+  - "源内容必须是有效的文本格式"
+  - "对于代码源，必须能够识别编程语言"
+  - "对于 API 规范，必须是有效的 OpenAPI 或类似格式"
+
+non_goals:
+  - "翻译已存在的文档"
+  - "生成市场营销或销售文档"
+  - "创建法律或合规文档"
+  - "生成用户界面文本"
+
+decision_rules:
+  - id: rule_api_reference
+    when: "doc_type == 'api_reference'"
+    then:
+      status: success
+      path: api_reference_generation
+      action: "生成 API 参考文档，包含端点、参数和响应说明"
+
+  - id: rule_user_guide
+    when: "doc_type == 'user_guide'"
+    then:
+      status: success
+      path: user_guide_generation
+      action: "生成用户指南，包含安装、配置和使用说明"
+
+  - id: rule_readme
+    when: "doc_type == 'readme'"
+    then:
+      status: success
+      path: readme_generation
+      action: "生成 README 文件，包含项目概述和快速开始指南"
+
+  - id: rule_changelog
+    when: "doc_type == 'changelog'"
+    then:
+      status: success
+      path: changelog_generation
+      action: "生成变更日志，按版本组织变更内容"
+
+  - id: rule_architecture
+    when: "doc_type == 'architecture'"
+    then:
+      status: success
+      path: architecture_generation
+      action: "生成架构文档，包含系统设计和组件说明"
+
+  - id: rule_default
+    is_default: true
+    when: true
+    then:
+      status: error
+      code: UNSUPPORTED_DOC_TYPE
+
+steps:
+  - id: parse_source
+    action: "解析源内容，提取结构化信息"
+    output: parsed_content
+
+  - id: analyze_structure
+    action: "分析内容结构，确定文档大纲"
+    output: doc_outline
+    based_on: [parsed_content]
+
+  - id: extract_metadata
+    action: "提取元数据（版本、作者、日期等）"
+    output: metadata
+    based_on: [parsed_content]
+
+  - id: generate_sections
+    action: "生成各个文档章节"
+    output: doc_sections
+    based_on: [doc_outline]
+
+  - id: add_examples
+    action: "添加示例代码和使用案例"
+    output: examples
+    condition: "include_examples == true"
+
+  - id: apply_formatting
+    action: "应用 Markdown 格式和样式"
+    output: formatted_doc
+    based_on: [doc_sections, examples]
+
+  - id: translate_if_needed
+    action: "如需要，进行语言翻译或双语处理"
+    output: final_doc
+    condition: "output_language == 'zh-en'"
+
+output_contract:
+  format: json
+  schema:
+    type: object
+    required: [status, document]
+    properties:
+      status:
+        type: string
+        enum: [success, partial, error]
+      document:
+        type: object
+        required: [content, format]
+        properties:
+          title:
+            type: string
+          content:
+            type: string
+            description: "生成的 Markdown 文档内容"
+          format:
+            type: string
+            enum: [markdown, html]
+          sections:
+            type: array
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                level:
+                  type: integer
+          word_count:
+            type: integer
+      warnings:
+        type: array
+        items:
+          type: string
+      metadata:
+        type: object
+        properties:
+          generation_time_ms:
+            type: integer
+          source_type:
+            type: string
+
+failure_modes:
+  - code: PARSE_ERROR
+    retryable: false
+    description: "无法解析源内容"
+
+  - code: UNSUPPORTED_DOC_TYPE
+    retryable: false
+    description: "不支持的文档类型"
+
+  - code: GENERATION_FAILED
+    retryable: true
+    description: "文档生成过程中发生错误"
+
+  - code: TRANSLATION_ERROR
+    retryable: true
+    description: "双语翻译过程中发生错误"
+
+edge_cases:
+  - case: empty_source
+    input:
+      source_content: ""
+      source_type: "code"
+      doc_type: "readme"
+    expected:
+      status: error
+      code: PARSE_ERROR
+
+  - case: minimal_source
+    description: "源内容信息量极少"
+    input:
+      source_content: "# placeholder"
+      source_type: "code"
+      doc_type: "readme"
+    expected:
+      status: partial
+      warnings: ["源内容信息不足，部分章节为模板内容"]
+
+  - case: mixed_language_source
+    description: "源代码包含中英文混合注释"
+    input:
+      source_type: "code"
+      output_language: "zh-en"
+    expected:
+      status: success
+
+  - case: no_examples_available
+    description: "无法从源内容中提取示例"
+    input:
+      include_examples: true
+    expected:
+      status: partial
+      warnings: ["无法提取示例代码"]
+
+context:
+  works_with:
+    - skill: "code-analyzer"
+      reason: "先分析代码结构，再生成文档"
+    - skill: "markdown-formatter"
+      reason: "美化和格式化生成的文档"
+    - skill: "extract-api-contract"
+      reason: "提取 API 规范作为文档生成的输入"
+
+  prerequisites:
+    - "对于代码文档，需要源代码具有基本的注释"
+    - "对于 API 文档，需要有效的 API 规范文件"
+
+  scenarios:
+    - name: "新项目 README 生成"
+      trigger: "项目初始化完成后"
+    - name: "API 文档更新"
+      trigger: "API 接口发生变更时"
+    - name: "版本发布文档"
+      trigger: "准备发布新版本时"
+
+examples:
+  - name: "生成简单 README"
+    input:
+      source_content: |
+        def hello(name: str) -> str:
+            """向用户问好。
+
+            Args:
+                name: 用户名称
+
+            Returns:
+                问候语字符串
+            """
+            return f"你好，{name}！"
+      source_type: "code"
+      doc_type: "readme"
+      output_language: "zh"
+      detail_level: "brief"
+    output:
+      status: success
+      document:
+        title: "项目文档"
+        content: |
+          # 项目文档
+
+          ## 功能说明
+
+          提供用户问候功能。
+
+          ## 使用方法
+
+          ```python
+          result = hello("世界")
+          # 输出: 你好，世界！
+          ```
+        format: "markdown"
+    explanation: "从简单的 Python 函数生成基础 README 文档"

@@ -1,0 +1,83 @@
+# GDPR Compliance Policy v1.0
+# Requirements for GDPR compliance
+
+policy:
+  id: "gdpr-compliance-v1"
+  name: "GDPR Compliance Policy"
+  version: "1.0.0"
+  description: "Requirements for GDPR compliance in skill processing"
+  extends: "enterprise-security-v1"
+
+# Regulatory Rules (GDPR specific)
+regulatory_rules:
+  - id: "gdpr_data_minimization"
+    severity: error
+    description: "Skills processing personal data must practice data minimization"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii", "pii:direct", "pii:indirect", "pii:sensitive"]
+    required_action:
+      type: require_section
+      section: "non_goals"
+
+  - id: "gdpr_purpose_limitation"
+    severity: error
+    description: "Personal data processing must have explicit purpose"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii", "pii:direct", "pii:indirect", "pii:sensitive"]
+    required_action:
+      type: require_field
+      path: "skill.purpose"
+
+  - id: "gdpr_right_to_erasure"
+    severity: warning
+    description: "Skills must support right to erasure for personal data"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii:direct", "pii:sensitive"]
+    required_action:
+      type: require_edge_case
+      pattern: "delete"
+
+  - id: "gdpr_consent_handling"
+    severity: warning
+    description: "Skills processing sensitive PII must handle consent"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii:sensitive"]
+    required_action:
+      type: require_edge_case
+      pattern: "consent"
+
+  - id: "gdpr_data_portability"
+    severity: info
+    description: "Skills should support data portability"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii:direct"]
+    required_action:
+      type: require_field
+      path: "output_contract.format"
+
+# Data Protection Rules
+data_protection_rules:
+  - id: "encryption_at_rest"
+    severity: error
+    description: "Sensitive data must be encrypted at rest"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii:sensitive", "financial:payment", "auth:credential"]
+    required_action:
+      type: require_edge_case
+      pattern: "encrypt"
+
+  - id: "access_logging"
+    severity: warning
+    description: "Access to personal data must be logged"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii", "pii:direct", "pii:indirect", "pii:sensitive"]
+    required_action:
+      type: require_field
+      path: "context.prerequisites"

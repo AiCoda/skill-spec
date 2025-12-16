@@ -1,0 +1,143 @@
+# Scan Scope Configuration for Forbidden Patterns
+# Defines which fields are scanned and what content is ignored
+
+version: "1.0"
+
+# Fields to scan for forbidden patterns (strict validation)
+scanned_fields:
+  # High priority - these define behavior
+  - path: "steps[*].action"
+    priority: high
+    description: "Action descriptions in steps"
+
+  - path: "decision_rules[*].then.action"
+    priority: high
+    description: "Actions in decision rule outcomes"
+
+  - path: "skill.purpose"
+    priority: high
+    description: "Skill purpose statement"
+
+  # Medium priority - supporting definitions
+  - path: "inputs[*].description"
+    priority: medium
+    description: "Input descriptions"
+
+  - path: "failure_modes[*].description"
+    priority: medium
+    description: "Failure mode descriptions"
+
+  - path: "edge_cases[*].case"
+    priority: medium
+    description: "Edge case descriptions"
+
+  - path: "context.scenarios[*].description"
+    priority: low
+    description: "Scenario descriptions"
+
+# Fields to ignore (not scanned for forbidden patterns)
+ignored_fields:
+  - path: "spec_version"
+    reason: "Fixed format string"
+
+  - path: "skill.name"
+    reason: "Identifier, not prose"
+
+  - path: "skill.version"
+    reason: "Version number, not prose"
+
+  - path: "skill.owner"
+    reason: "Identifier, not prose"
+
+  - path: "inputs[*].name"
+    reason: "Identifier, not prose"
+
+  - path: "inputs[*].type"
+    reason: "Type specification, not prose"
+
+  - path: "inputs[*].domain"
+    reason: "Domain specification, not prose"
+
+  - path: "inputs[*].constraints"
+    reason: "Technical constraints, not prose"
+
+  - path: "decision_rules[*].id"
+    reason: "Identifier, not prose"
+
+  - path: "decision_rules[*].when"
+    reason: "Expression, not prose (validated separately)"
+
+  - path: "decision_rules[*].then.code"
+    reason: "Error code, not prose"
+
+  - path: "decision_rules[*].then.status"
+    reason: "Status enum, not prose"
+
+  - path: "steps[*].id"
+    reason: "Identifier, not prose"
+
+  - path: "steps[*].output"
+    reason: "Variable name, not prose"
+
+  - path: "steps[*].based_on"
+    reason: "References, not prose"
+
+  - path: "output_contract"
+    reason: "Schema definition, not prose"
+
+  - path: "failure_modes[*].code"
+    reason: "Error code, not prose"
+
+  - path: "failure_modes[*].retryable"
+    reason: "Boolean, not prose"
+
+  - path: "examples"
+    reason: "Example data, relaxed validation"
+
+# Content patterns to ignore within scanned fields
+ignore_patterns:
+  # Code blocks (fenced)
+  - pattern: "```[\\s\\S]*?```"
+    type: regex
+    reason: "Fenced code block"
+
+  # Inline code
+  - pattern: "`[^`]+`"
+    type: regex
+    reason: "Inline code"
+
+  # Technical identifiers (camelCase)
+  - pattern: "\\b[a-z]+[A-Z][a-zA-Z]*\\b"
+    type: regex
+    reason: "camelCase identifier"
+
+  # Technical identifiers (snake_case)
+  - pattern: "\\b[a-z]+_[a-z_]+\\b"
+    type: regex
+    reason: "snake_case identifier"
+
+  # URLs
+  - pattern: "https?://[^\\s]+"
+    type: regex
+    reason: "URL"
+
+  # File paths
+  - pattern: "[/\\\\][a-zA-Z0-9_.-]+[/\\\\][a-zA-Z0-9_.-/\\\\]*"
+    type: regex
+    reason: "File path"
+
+  # JSON/YAML keys in examples
+  - pattern: '"[a-zA-Z_][a-zA-Z0-9_]*"\\s*:'
+    type: regex
+    reason: "JSON key"
+
+# Severity thresholds
+thresholds:
+  # Fail validation if any errors
+  max_errors: 0
+
+  # Warn but don't fail for warnings
+  max_warnings: 10
+
+  # Report info but never fail
+  max_info: -1  # unlimited

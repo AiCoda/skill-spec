@@ -1,0 +1,97 @@
+# Chinese Messages for Skill-Spec
+# Version: 1.0.0
+
+validation:
+  passed: "验证通过"
+  failed: "验证失败"
+  errors:
+    missing_field: "缺少必填字段: {field}"
+    invalid_type: "{field} 类型无效: 期望 {expected}, 实际 {actual}"
+    unknown_tag: "未知标签: {tag}"
+    deprecated_tag: "标签 '{tag}' 已弃用"
+    policy_violation: "策略违规: {rule}"
+  warnings:
+    missing_recommended: "缺少推荐字段: {field}"
+    low_coverage: "覆盖率较低: {score}%"
+  summary:
+    total_errors: "错误总数: {count}"
+    total_warnings: "警告总数: {count}"
+    structural_coverage: "结构覆盖率: {score}%"
+    behavioral_coverage: "行为覆盖率: {score}%"
+
+quality:
+  title: "质量分析"
+  forbidden_pattern: "检测到禁止模式: {pattern}"
+  categories:
+    vague_condition: "模糊条件"
+    vague_action: "模糊动作"
+    vague_degree: "模糊程度修饰语"
+    hedge_word: "模糊词"
+    weak_verb: "弱动词"
+
+coverage:
+  title: "覆盖率分析"
+  gap_found: "覆盖缺口: {item}"
+  missing_edge_case: "缺少边界案例: {item}"
+  orphan_definition: "孤立定义: {item}"
+
+compliance:
+  title: "合规报告"
+  policy_checked: "已检查策略: {policies}"
+  violation: "[{severity}] {rule}: {description}"
+  required_action: "需要的操作: {action}"
+
+diary:
+  title: "日志摘要"
+  total_events: "总事件数: {count}"
+  test_runs: "测试运行: {count}"
+  production_runs: "生产运行: {count}"
+  success_rate: "成功率: {rate}%"
+  avg_duration: "平均耗时: {duration}毫秒"
+  last_test_run: "最后测试运行: {timestamp}"
+  last_production_run: "最后生产运行: {timestamp}"
+  no_events: "无记录事件"
+
+migration:
+  title: "迁移指南"
+  success: "迁移成功完成"
+  items_attention: "需要注意的项目:"
+  next_steps: "下一步:"
+  step_review: "1. 审查生成的 spec.yaml"
+  step_fill_todos: "2. 填写所有 TODO 标记"
+  step_define_rules: "3. 根据技能逻辑定义 decision_rules"
+  step_validate: "4. 运行: skillspec validate <name> --strict"
+  step_generate: "5. 运行: skillspec generate <name> --force"
+
+cli:
+  skill_not_found: "未找到技能 '{name}'"
+  file_not_found: "文件未找到: {path}"
+  invalid_format: "无效格式: {format}"
+  created: "已创建: {path}"
+  generated: "已生成: {path}"
+  published: "已发布: {name}"
+  archived: "已归档: {name}"
+  pruned_events: "清理了 {count} 个超过 {days} 天的事件"
+
+sections:
+  purpose: "目的"
+  inputs: "输入"
+  prerequisites: "前提条件"
+  non_goals: "技能不做的事情"
+  decision_criteria: "决策标准"
+  workflow: "工作流程"
+  edge_cases: "边界案例"
+  output_format: "输出格式"
+  error_handling: "错误处理"
+  works_with: "配合使用"
+  limitations: "限制"
+  examples: "示例"
+  when_to_use: "使用场景"
+
+report:
+  title: "报告: {name}"
+  summary: "摘要"
+  quality_analysis: "质量分析"
+  coverage_analysis: "覆盖率分析"
+  compliance_check: "合规检查"
+  evidence_summary: "证据摘要"

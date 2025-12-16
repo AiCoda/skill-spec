@@ -1,0 +1,344 @@
+# Skill-Spec: Code Review Assistant
+# Version: 1.0.0
+# A complex skill with multiple decision rules demonstrating advanced patterns
+
+spec_version: "skill-spec/1.0"
+
+_meta:
+  content_language: "en"
+  mixed_language_strategy: "en-only"
+
+skill:
+  name: "code-review-assistant"
+  version: "1.0.0"
+  purpose: "Provide intelligent code review feedback focusing on quality, security, and maintainability"
+  owner: "developer-experience-team"
+
+inputs:
+  - name: code_diff
+    type: string
+    required: true
+    constraints: [not_empty, max_length_100000]
+    description: "Git diff or code changes to review"
+    tags: ["content:code"]
+
+  - name: file_path
+    type: string
+    required: true
+    constraints: [not_empty]
+    description: "Path of the file being reviewed"
+
+  - name: language
+    type: string
+    required: false
+    description: "Programming language of the code"
+    domain:
+      type: enum
+      values: ["python", "javascript", "typescript", "java", "go", "rust", "auto"]
+    default: "auto"
+
+  - name: review_focus
+    type: array
+    required: false
+    description: "Areas to focus the review on"
+    domain:
+      type: enum
+      values: ["security", "performance", "style", "testing", "documentation", "all"]
+    default: ["all"]
+
+  - name: severity_threshold
+    type: string
+    required: false
+    description: "Minimum severity level to report"
+    domain:
+      type: enum
+      values: ["info", "warning", "error", "critical"]
+    default: "info"
+
+  - name: context_files
+    type: array
+    required: false
+    description: "Additional files for context (interfaces, base classes)"
+    items:
+      type: object
+      properties:
+        path:
+          type: string
+        content:
+          type: string
+
+preconditions:
+  - "Code diff must be in unified diff format or raw code"
+  - "File path must indicate a source code file"
+  - "For 'auto' language detection, file extension must be standard"
+
+non_goals:
+  - "Automatically fix code issues"
+  - "Run or execute the code"
+  - "Access external repositories or services"
+  - "Persist review history"
+  - "Generate unit tests"
+
+decision_rules:
+  _config:
+    match_strategy: all_match
+    conflict_resolution: warn
+
+  - id: rule_security_critical
+    priority: 100
+    when: "contains(code_diff, 'password') or contains(code_diff, 'secret') or contains(code_diff, 'api_key')"
+    then:
+      status: warning
+      path: security_review
+      action: "Perform deep security analysis for sensitive data handling"
+      flags: [high_priority]
+
+  - id: rule_test_file
+    priority: 50
+    when: "contains(file_path, 'test') or contains(file_path, '_spec')"
+    then:
+      status: success
+      path: test_review
+      action: "Apply test-specific review criteria"
+      skip_areas: [style]
+
+  - id: rule_config_file
+    priority: 50
+    when: "matches(file_path, '.*\\.(json|yaml|yml|toml|ini)$')"
+    then:
+      status: success
+      path: config_review
+      action: "Apply configuration file review criteria"
+      skip_areas: [testing, documentation]
+
+  - id: rule_large_change
+    priority: 30
+    when: "len(code_diff) > 5000"
+    then:
+      status: info
+      path: chunked_review
+      action: "Break down into focused review sections"
+      flags: [needs_summary]
+
+  - id: rule_standard_review
+    is_default: true
+    when: true
+    then:
+      status: success
+      path: standard_review
+      action: "Apply standard code review checklist"
+
+steps:
+  - id: parse_diff
+    action: "Parse diff into structured change representation"
+    output: parsed_changes
+
+  - id: detect_language
+    action: "Detect or confirm programming language"
+    output: confirmed_language
+    based_on: [parsed_changes]
+
+  - id: analyze_security
+    action: "Check for security vulnerabilities and sensitive data exposure"
+    output: security_findings
+    condition: "'security' in review_focus or 'all' in review_focus"
+
+  - id: analyze_performance
+    action: "Identify performance issues and optimization opportunities"
+    output: performance_findings
+    condition: "'performance' in review_focus or 'all' in review_focus"
+
+  - id: analyze_style
+    action: "Check code style and consistency"
+    output: style_findings
+    condition: "'style' in review_focus or 'all' in review_focus"
+
+  - id: analyze_testing
+    action: "Evaluate test coverage and quality"
+    output: testing_findings
+    condition: "'testing' in review_focus or 'all' in review_focus"
+
+  - id: analyze_documentation
+    action: "Check documentation completeness"
+    output: documentation_findings
+    condition: "'documentation' in review_focus or 'all' in review_focus"
+
+  - id: aggregate_findings
+    action: "Combine all findings and apply severity filter"
+    output: filtered_findings
+    based_on: [security_findings, performance_findings, style_findings, testing_findings, documentation_findings]
+
+  - id: generate_summary
+    action: "Generate executive summary of review"
+    output: review_summary
+    based_on: [filtered_findings]
+
+output_contract:
+  format: json
+  schema:
+    type: object
+    required: [status, review]
+    properties:
+      status:
+        type: string
+        enum: [approved, changes_requested, needs_discussion]
+      review:
+        type: object
+        required: [summary, findings]
+        properties:
+          summary:
+            type: string
+            description: "Executive summary of the review"
+          findings:
+            type: array
+            items:
+              type: object
+              required: [severity, category, message, line]
+              properties:
+                severity:
+                  type: string
+                  enum: [info, warning, error, critical]
+                category:
+                  type: string
+                  enum: [security, performance, style, testing, documentation, logic]
+                message:
+                  type: string
+                line:
+                  type: integer
+                suggestion:
+                  type: string
+          stats:
+            type: object
+            properties:
+              total_findings:
+                type: integer
+              by_severity:
+                type: object
+              by_category:
+                type: object
+      metadata:
+        type: object
+        properties:
+          language:
+            type: string
+          lines_reviewed:
+            type: integer
+          review_duration_ms:
+            type: integer
+
+failure_modes:
+  - code: PARSE_ERROR
+    retryable: false
+    description: "Failed to parse code diff"
+
+  - code: UNSUPPORTED_LANGUAGE
+    retryable: false
+    description: "Programming language not supported for review"
+
+  - code: ANALYSIS_TIMEOUT
+    retryable: true
+    description: "Review analysis exceeded time limit"
+
+  - code: CONTEXT_ERROR
+    retryable: false
+    description: "Failed to load or parse context files"
+
+edge_cases:
+  - case: empty_diff
+    input:
+      code_diff: ""
+      file_path: "src/main.py"
+    expected:
+      status: error
+      code: PARSE_ERROR
+
+  - case: binary_file
+    input:
+      code_diff: "Binary files differ"
+      file_path: "assets/logo.png"
+    expected:
+      status: approved
+      review:
+        summary: "Binary file change - manual review recommended"
+        findings: []
+
+  - case: deleted_file
+    input:
+      code_diff: "--- a/old.py\n+++ /dev/null\n@@ -1,10 +0,0 @@"
+      file_path: "old.py"
+    expected:
+      status: approved
+      review:
+        summary: "File deletion - verify no dependent code"
+
+  - case: new_file_security_sensitive
+    description: "New file with hardcoded credentials"
+    input:
+      code_diff: "+API_KEY = 'sk-secret123'"
+      file_path: "config.py"
+      review_focus: ["security"]
+    expected:
+      status: changes_requested
+      review:
+        findings:
+          - severity: critical
+            category: security
+
+  - case: test_file_low_coverage
+    description: "Test file with minimal assertions"
+    input:
+      file_path: "test_main.py"
+      review_focus: ["testing"]
+    expected:
+      status: changes_requested
+      review:
+        findings:
+          - category: testing
+
+context:
+  works_with:
+    - skill: "auto-fix-suggestions"
+      reason: "Apply automated fixes based on review findings"
+    - skill: "pr-summarizer"
+      reason: "Generate PR summary including review highlights"
+
+  prerequisites:
+    - "Git repository access for full diff context"
+    - "Language-specific linting rules configured"
+
+  scenarios:
+    - name: "Pull Request Review"
+      trigger: "New PR opened or updated"
+    - name: "Pre-commit Check"
+      trigger: "Developer requests review before commit"
+
+examples:
+  - name: "Python security issue"
+    input:
+      code_diff: |
+        +import os
+        +
+        +def get_config():
+        +    return {
+        +        "api_key": os.environ.get("API_KEY", "default-key-123"),
+        +        "debug": True
+        +    }
+      file_path: "src/config.py"
+      language: "python"
+      review_focus: ["security"]
+    output:
+      status: changes_requested
+      review:
+        summary: "Security concerns found: hardcoded default credentials and debug mode enabled"
+        findings:
+          - severity: error
+            category: security
+            message: "Hardcoded default API key - use proper secret management"
+            line: 5
+            suggestion: "Remove default value or use a placeholder that fails fast"
+          - severity: warning
+            category: security
+            message: "Debug mode should not be enabled by default"
+            line: 6
+            suggestion: "Set debug default to False"
+    explanation: "Identifies common security anti-patterns in configuration code"

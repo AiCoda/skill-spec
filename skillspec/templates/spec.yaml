@@ -1,0 +1,158 @@
+# Skill-Spec Template v1.0
+# Fill in all sections marked with TODO
+# Run: skillspec validate <name> --strict
+
+spec_version: "skill-spec/1.0"
+
+# Meta configuration (optional)
+_meta:
+  content_language: "en"  # en | zh | auto
+  mixed_language_strategy: "union"  # union | segment_detect | primary
+
+# ============================================================================
+# CORE SECTIONS (8 required)
+# ============================================================================
+
+# 1. Skill Metadata
+skill:
+  name: "TODO-verb-object"  # kebab-case, e.g., "extract-api-contract"
+  version: "1.0.0"
+  purpose: "TODO: Single sentence describing what this skill does"
+  owner: "TODO-team-name"
+
+# 2. Inputs (Input Contract)
+inputs:
+  - name: TODO_input_name
+    type: string  # string | number | boolean | object | array
+    required: true
+    constraints:
+      - not_empty
+      # - max_length: 500
+      # - min_value: 0
+      # - pattern: "^[a-z]+$"
+    domain:
+      type: any  # enum | range | pattern_set | boolean | any
+      # values: ["option_a", "option_b"]  # for enum
+      # min: 0  # for range
+      # max: 100  # for range
+    description: "TODO: Precise semantic definition"
+
+# 3. Preconditions
+preconditions:
+  - "TODO: What must be true before this skill runs"
+
+# 4. Non-goals (What this skill does NOT do)
+non_goals:
+  - "TODO: Explicitly state what is out of scope"
+  - "Does not infer missing data"
+  - "Does not call external APIs"
+
+# 5. Decision Rules (Explicit logic)
+decision_rules:
+  _config:
+    match_strategy: first_match  # first_match | priority | all_match
+    conflict_resolution: error   # error | warn | first_wins
+
+  - id: rule_validation_fail
+    priority: 10
+    when: "is_empty(TODO_input_name)"
+    then:
+      status: error
+      code: EMPTY_INPUT
+
+  - id: rule_default
+    priority: 0
+    is_default: true
+    when: true
+    then:
+      status: success
+      path: default
+
+# 6. Steps (Execution Flow)
+steps:
+  - id: validate
+    action: validate_input
+    output: validated_input
+
+  - id: process
+    action: TODO_main_action
+    output: result
+    based_on: [validated_input]
+
+  - id: render
+    action: format_output
+    based_on: [result]
+
+# 7. Output Contract
+output_contract:
+  format: json  # json | text | markdown | yaml
+  schema:
+    type: object
+    required: [status]
+    properties:
+      status:
+        enum: [success, error]
+      result:
+        type: object
+      error_code:
+        type: string
+
+# 8. Failure Modes
+failure_modes:
+  - code: EMPTY_INPUT
+    retryable: false
+    description: "Input was empty or missing"
+
+  - code: VALIDATION_ERROR
+    retryable: false
+    description: "Input failed validation"
+
+  - code: TODO_FAILURE_CODE
+    retryable: true
+    description: "TODO: Describe when this failure occurs"
+
+# ============================================================================
+# COVERAGE SECTIONS (1 required)
+# ============================================================================
+
+# 9. Edge Cases
+edge_cases:
+  - case: empty_input
+    expected:
+      status: error
+      code: EMPTY_INPUT
+
+  - case: TODO_edge_case
+    expected:
+      status: success
+      # Describe expected behavior
+
+# ============================================================================
+# CONTEXT SECTIONS (optional)
+# ============================================================================
+
+# 10. Context (Collaboration info)
+context:
+  works_with:
+    - skill: TODO-related-skill
+      reason: "TODO: Why these skills work together"
+
+  prerequisites:
+    - "TODO: What user needs to do first"
+
+  scenarios:
+    - name: "TODO-scenario-name"
+      description: "TODO: Describe typical usage scenario"
+
+# ============================================================================
+# EXAMPLES (optional, recommended for Anthropic format)
+# ============================================================================
+
+examples:
+  - name: "Basic usage"
+    input:
+      TODO_input_name: "example value"
+    output:
+      status: success
+      result: {}
+    explanation: "TODO: Explain what happens in this example"

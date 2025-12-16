@@ -1,0 +1,64 @@
+# Violation Categories for Skill-Spec Quality Validation
+# These categories are language-independent and enable cross-language comparison
+
+version: "1.0"
+
+categories:
+  VAGUE_CONDITION:
+    description: "Vague or ambiguous conditions that should be explicit decision rules"
+    severity: error
+    examples:
+      en: ["as needed", "if appropriate", "when necessary", "where applicable"]
+      zh: ["as needed", "if appropriate", "when necessary"]
+
+  VAGUE_ACTION:
+    description: "Weak action verbs that lack specificity"
+    severity: error
+    examples:
+      en: ["try to", "attempt to", "help", "assist", "support"]
+      zh: ["try to", "help", "assist"]
+
+  VAGUE_DEGREE:
+    description: "Qualifiers that indicate uncertainty or imprecision"
+    severity: error
+    examples:
+      en: ["generally", "typically", "usually", "often", "sometimes"]
+      zh: ["generally", "typically", "usually"]
+
+  HEDGE_WORDS:
+    description: "Words that hedge commitments or outcomes"
+    severity: warning
+    examples:
+      en: ["might", "could", "may", "should consider", "probably"]
+      zh: ["might", "could", "may"]
+
+  WEAK_VERBS:
+    description: "Verbs that are too weak for actionable instructions"
+    severity: warning
+    examples:
+      en: ["consider", "ensure", "make sure", "verify"]
+      zh: ["consider", "ensure"]
+
+  AMBIGUOUS_REFERENCE:
+    description: "References that are unclear or could refer to multiple things"
+    severity: warning
+    examples:
+      en: ["it", "this", "that", "these", "those"]
+      zh: ["it", "this"]
+
+  UNMEASURABLE_QUALITY:
+    description: "Quality descriptors that cannot be measured or verified"
+    severity: warning
+    examples:
+      en: ["good", "better", "best", "appropriate", "suitable", "proper"]
+      zh: ["good", "appropriate", "suitable"]
+
+# Mapping from category to suggested fix
+fix_suggestions:
+  VAGUE_CONDITION: "Replace with explicit decision_rule with 'when' condition"
+  VAGUE_ACTION: "Replace with specific action verb (e.g., 'extract', 'parse', 'validate')"
+  VAGUE_DEGREE: "Remove qualifier or specify exact threshold/condition"
+  HEDGE_WORDS: "Remove hedge word and state the definite outcome"
+  WEAK_VERBS: "Replace with specific action or add validation step"
+  AMBIGUOUS_REFERENCE: "Replace with explicit reference to the specific entity"
+  UNMEASURABLE_QUALITY: "Replace with measurable criteria or threshold"

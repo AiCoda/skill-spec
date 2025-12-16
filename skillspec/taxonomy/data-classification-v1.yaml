@@ -1,0 +1,152 @@
+# Data Classification Taxonomy v1.0
+# Defines standard tags for input data classification
+
+taxonomy:
+  id: "data-classification-v1"
+  name: "Data Classification Taxonomy"
+  version: "1.0.0"
+  description: "Standard tags for classifying input data sensitivity and type"
+
+categories:
+  # Personal Identifiable Information (PII)
+  pii:
+    description: "Personal Identifiable Information"
+    tags:
+      - id: "pii:direct"
+        description: "Directly identifies an individual (name, SSN, email)"
+        inherits: ["pii"]
+        policies: ["require_encryption", "require_audit_log"]
+
+      - id: "pii:indirect"
+        description: "Can identify when combined with other data"
+        inherits: ["pii"]
+        policies: ["require_access_control"]
+
+      - id: "pii:sensitive"
+        description: "Sensitive PII (health, financial, biometric)"
+        inherits: ["pii:direct"]
+        policies: ["require_encryption", "require_audit_log", "require_consent"]
+
+  # Financial Data
+  financial:
+    description: "Financial and payment information"
+    tags:
+      - id: "financial:payment"
+        description: "Payment card data (PCI-DSS scope)"
+        policies: ["require_pci_compliance"]
+
+      - id: "financial:banking"
+        description: "Bank account information"
+        policies: ["require_encryption"]
+
+      - id: "financial:transaction"
+        description: "Transaction records"
+        policies: ["require_audit_log"]
+
+  # Authentication & Access
+  auth:
+    description: "Authentication and authorization data"
+    tags:
+      - id: "auth:credential"
+        description: "Passwords, API keys, tokens"
+        policies: ["never_log", "require_encryption"]
+
+      - id: "auth:session"
+        description: "Session tokens and cookies"
+        policies: ["require_expiration"]
+
+  # Content Types
+  content:
+    description: "Content and media types"
+    tags:
+      - id: "content:user_generated"
+        description: "User-generated content"
+        policies: ["require_sanitization"]
+
+      - id: "content:code"
+        description: "Source code or scripts"
+        policies: ["require_sandbox"]
+
+      - id: "content:config"
+        description: "Configuration data"
+        policies: ["require_validation"]
+
+  # System Data
+  system:
+    description: "System and operational data"
+    tags:
+      - id: "system:logs"
+        description: "System logs"
+        policies: ["require_retention_policy"]
+
+      - id: "system:metrics"
+        description: "Performance metrics"
+        policies: []
+
+      - id: "system:internal"
+        description: "Internal system data"
+        policies: ["require_access_control"]
+
+# Constraints for tag usage
+constraints:
+  # Maximum inheritance depth
+  max_inheritance_depth: 3
+
+  # Required fields when using certain tags
+  required_fields:
+    "pii:*":
+      - path: "failure_modes"
+        description: "PII data requires defined failure modes for data protection"
+    "auth:credential":
+      - path: "non_goals"
+        description: "Credential handling must explicitly state what is NOT done"
+
+  # Mutually exclusive tags
+  exclusive_groups:
+    - ["pii:direct", "system:internal"]  # Can't be both PII and internal-only
+
+# Policy triggers
+policy_triggers:
+  require_encryption:
+    description: "Data must be encrypted at rest and in transit"
+    severity: error
+
+  require_audit_log:
+    description: "All access must be logged"
+    severity: warning
+
+  require_access_control:
+    description: "Access control must be implemented"
+    severity: warning
+
+  require_consent:
+    description: "User consent must be obtained"
+    severity: error
+
+  require_pci_compliance:
+    description: "Must comply with PCI-DSS requirements"
+    severity: error
+
+  never_log:
+    description: "Must never be logged or stored in plain text"
+    severity: error
+
+  require_expiration:
+    description: "Must have expiration handling"
+    severity: warning
+
+  require_sanitization:
+    description: "Input must be sanitized"
+    severity: warning
+
+  require_sandbox:
+    description: "Must be executed in sandbox"
+    severity: warning
+
+  require_validation:
+    description: "Must be validated before use"
+    severity: warning
+
+  require_retention_policy:
+    description: "Must have data retention policy"
+    severity: info

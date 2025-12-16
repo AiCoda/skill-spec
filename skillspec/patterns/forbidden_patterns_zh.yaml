@@ -1,0 +1,180 @@
+# Forbidden Patterns - Chinese (Simplified)
+# These patterns indicate missing decision criteria in skill specifications
+
+version: "1.0"
+language: "zh"
+
+patterns:
+  # VAGUE_CONDITION - Ambiguous conditions
+  - pattern: "as needed"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Replace with explicit condition in decision_rules"
+
+  - pattern: "if appropriate"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define explicit triggering condition"
+
+  - pattern: "when necessary"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define 'necessary' with concrete criteria"
+
+  - pattern: "where applicable"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define specific applicable scenarios"
+
+  - pattern: "if needed"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Define specific trigger condition"
+
+  - pattern: "according to situation"
+    category: VAGUE_CONDITION
+    severity: error
+    context: "instruction"
+    fix: "Enumerate all situations and responses"
+
+  # VAGUE_ACTION - Weak action verbs
+  - pattern: "try to"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Remove 'try to' and state definite action"
+
+  - pattern: "try to"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Remove 'try to' and state definite action"
+
+  - pattern: "help"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Replace with concrete action (e.g., extract, generate, analyze)"
+
+  - pattern: "assist"
+    category: VAGUE_ACTION
+    severity: error
+    context: "action"
+    fix: "Replace with concrete action"
+
+  - pattern: "support"
+    category: VAGUE_ACTION
+    severity: warning
+    context: "action"
+    fix: "Replace with concrete capability"
+
+  # VAGUE_DEGREE - Uncertainty qualifiers
+  - pattern: "generally"
+    category: VAGUE_DEGREE
+    severity: error
+    context: "any"
+    fix: "Remove or specify exact cases"
+
+  - pattern: "typically"
+    category: VAGUE_DEGREE
+    severity: error
+    context: "any"
+    fix: "Remove or specify exact cases"
+
+  - pattern: "usually"
+    category: VAGUE_DEGREE
+    severity: error
+    context: "any"
+    fix: "Remove or specify exact cases"
+
+  - pattern: "most of the time"
+    category: VAGUE_DEGREE
+    severity: error
+    context: "any"
+    fix: "Specify exact scenarios"
+
+  - pattern: "sometimes"
+    category: VAGUE_DEGREE
+    severity: warning
+    context: "any"
+    fix: "Specify when this happens"
+
+  - pattern: "possibly"
+    category: VAGUE_DEGREE
+    severity: warning
+    context: "any"
+    fix: "Specify exact scenarios"
+
+  # HEDGE_WORDS - Hedging language
+  - pattern: "might"
+    category: HEDGE_WORDS
+    severity: warning
+    context: "any"
+    fix: "State definite outcome"
+
+  - pattern: "could"
+    category: HEDGE_WORDS
+    severity: warning
+    context: "any"
+    fix: "State definite outcome"
+
+  - pattern: "may"
+    category: HEDGE_WORDS
+    severity: warning
+    context: "any"
+    fix: "State definite outcome"
+
+  - pattern: "should be"
+    category: HEDGE_WORDS
+    severity: warning
+    context: "any"
+    fix: "Change to 'must' or remove"
+
+  # WEAK_VERBS - Weak action verbs
+  - pattern: "consider"
+    category: WEAK_VERBS
+    severity: warning
+    context: "action"
+    fix: "Replace with concrete action"
+
+  - pattern: "ensure"
+    category: WEAK_VERBS
+    severity: warning
+    context: "action"
+    fix: "Replace with specific validation step"
+
+  - pattern: "note"
+    category: WEAK_VERBS
+    severity: warning
+    context: "action"
+    fix: "Replace with specific action"
+
+  # UNMEASURABLE_QUALITY - Non-measurable descriptors
+  - pattern: "good"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    context: "quality"
+    fix: "Define measurable criteria"
+
+  - pattern: "appropriate"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    context: "quality"
+    fix: "Define 'appropriate' with concrete criteria"
+
+  - pattern: "suitable"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    context: "quality"
+    fix: "Define suitability criteria"
+
+  - pattern: "reasonable"
+    category: UNMEASURABLE_QUALITY
+    severity: warning
+    context: "quality"
+    fix: "Define concrete standard"

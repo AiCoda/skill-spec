@@ -1,0 +1,153 @@
+# Universal Forbidden Patterns
+# Language-agnostic patterns that apply to both English and Chinese content
+# Version: 1.0.0
+
+patterns:
+  # Placeholder patterns (universal)
+  - id: placeholder_todo
+    pattern: "\\bTODO\\b"
+    category: INCOMPLETE_SPEC
+    severity: error
+    message: "Contains TODO placeholder"
+    fix: "Replace TODO with actual content"
+
+  - id: placeholder_tbd
+    pattern: "\\bTBD\\b"
+    category: INCOMPLETE_SPEC
+    severity: error
+    message: "Contains TBD (To Be Determined) placeholder"
+    fix: "Determine and specify the actual value"
+
+  - id: placeholder_fixme
+    pattern: "\\bFIXME\\b"
+    category: INCOMPLETE_SPEC
+    severity: error
+    message: "Contains FIXME marker"
+    fix: "Fix the issue and remove the marker"
+
+  - id: placeholder_xxx
+    pattern: "\\bXXX\\b"
+    category: INCOMPLETE_SPEC
+    severity: warning
+    message: "Contains XXX marker"
+    fix: "Replace with actual content"
+
+  - id: placeholder_ellipsis
+    pattern: "\\.\\.\\.(?!\")"
+    category: INCOMPLETE_SPEC
+    severity: warning
+    message: "Contains ellipsis suggesting incomplete content"
+    fix: "Complete the specification"
+
+  # Empty or stub patterns
+  - id: empty_brackets
+    pattern: "\\[\\s*\\]"
+    category: EMPTY_DEFINITION
+    severity: warning
+    message: "Contains empty array brackets"
+    fix: "Add array items or remove if intentionally empty"
+    context: ["inputs", "steps", "edge_cases"]
+
+  - id: empty_braces
+    pattern: "\\{\\s*\\}"
+    category: EMPTY_DEFINITION
+    severity: warning
+    message: "Contains empty object braces"
+    fix: "Add object properties or remove if intentionally empty"
+    context: ["output_contract.schema"]
+
+  # Technical debt markers
+  - id: hack_marker
+    pattern: "\\bHACK\\b"
+    category: TECHNICAL_DEBT
+    severity: warning
+    message: "Contains HACK marker indicating workaround"
+    fix: "Document proper solution or remove workaround"
+
+  - id: workaround_marker
+    pattern: "\\bWORKAROUND\\b"
+    category: TECHNICAL_DEBT
+    severity: warning
+    message: "Contains WORKAROUND marker"
+    fix: "Document proper solution"
+
+  # Version/date placeholders
+  - id: version_placeholder
+    pattern: "\\b[vV]?0\\.0\\.0\\b"
+    category: INCOMPLETE_SPEC
+    severity: warning
+    message: "Contains placeholder version 0.0.0"
+    fix: "Set actual version number"
+
+  - id: date_placeholder
+    pattern: "\\b(YYYY|MM|DD)[-/](YYYY|MM|DD)[-/]?(YYYY|MM|DD)?\\b"
+    category: INCOMPLETE_SPEC
+    severity: error
+    message: "Contains date placeholder format"
+    fix: "Replace with actual date"
+
+  # Generic/template names
+  - id: generic_name_foo
+    pattern: "\\b(foo|bar|baz|qux)\\b"
+    category: VAGUE_NAMING
+    severity: warning
+    message: "Contains generic placeholder name"
+    fix: "Use descriptive, domain-specific names"
+    context: ["inputs", "steps", "examples"]
+
+  - id: generic_name_test
+    pattern: "\\btest_?(input|output|data|value)\\b"
+    category: VAGUE_NAMING
+    severity: warning
+    message: "Contains generic test name in non-test context"
+    fix: "Use meaningful names that describe the data"
+    context: ["inputs", "examples"]
+
+  # Numeric magic values
+  - id: magic_number_large
+    pattern: "\\b(999+|1000000+)\\b"
+    category: MAGIC_VALUE
+    severity: info
+    message: "Contains potentially arbitrary large number"
+    fix: "Document the meaning of this value or use named constant"
+
+  # URL/path placeholders
+  - id: example_url
+    pattern: "https?://(example\\.com|localhost|127\\.0\\.0\\.1)"
+    category: PLACEHOLDER_VALUE
+    severity: info
+    message: "Contains example/localhost URL"
+    fix: "Replace with actual URL or document as intentional example"
+
+  - id: placeholder_path
+    pattern: "/path/to/|/your/|/my/"
+    category: PLACEHOLDER_VALUE
+    severity: warning
+    message: "Contains placeholder path"
+    fix: "Use actual path or parameterize"
+
+# Categories for universal patterns
+categories:
+  INCOMPLETE_SPEC:
+    description: "Specification contains incomplete or placeholder content"
+    severity_default: error
+
+  EMPTY_DEFINITION:
+    description: "Definition is empty or contains no meaningful content"
+    severity_default: warning
+
+  TECHNICAL_DEBT:
+    description: "Markers indicating technical debt or workarounds"
+    severity_default: warning
+
+  VAGUE_NAMING:
+    description: "Generic or placeholder names that lack specificity"
+    severity_default: warning
+
+  MAGIC_VALUE:
+    description: "Unexplained numeric or string literals"
+    severity_default: info
+
+  PLACEHOLDER_VALUE:
+    description: "Values that appear to be placeholders"
+    severity_default: warning

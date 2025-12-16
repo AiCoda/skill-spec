@@ -1,0 +1,312 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://skillspec.io/schema/compliance-report-v1.json",
+  "title": "Skill-Spec Compliance Report v1.0",
+  "description": "Machine-consumable compliance report for audit platforms",
+  "type": "object",
+  "required": ["report_version", "skill", "validation", "audit_metadata"],
+  "properties": {
+    "report_version": {
+      "type": "string",
+      "const": "compliance-report/1.0",
+      "description": "Report schema version"
+    },
+    "skill": {
+      "type": "object",
+      "required": ["name", "version", "path"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Skill name (kebab-case)"
+        },
+        "version": {
+          "type": "string",
+          "description": "Skill version"
+        },
+        "path": {
+          "type": "string",
+          "description": "Relative path to skill directory"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Skill owner team"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "total_errors", "total_warnings"],
+      "properties": {
+        "valid": {
+          "type": "boolean",
+          "description": "Overall validation result"
+        },
+        "total_errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_warnings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "layers": {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "$ref": "#/definitions/layer_result"
+            },
+            "quality": {
+              "$ref": "#/definitions/quality_result"
+            },
+            "coverage": {
+              "$ref": "#/definitions/coverage_result"
+            },
+            "consistency": {
+              "$ref": "#/definitions/layer_result"
+            },
+            "compliance": {
+              "$ref": "#/definitions/compliance_result"
+            },
+            "taxonomy": {
+              "$ref": "#/definitions/taxonomy_result"
+            }
+          }
+        }
+      }
+    },
+    "evidence_trace": {
+      "type": "object",
+      "description": "Traceability evidence for audit",
+      "properties": {
+        "policies_applied": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["policy_id", "policy_name"],
+            "properties": {
+              "policy_id": { "type": "string" },
+              "policy_name": { "type": "string" },
+              "policy_version": { "type": "string" }
+            }
+          }
+        },
+        "rules_evaluated": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rule_id", "policy_id", "result"],
+            "properties": {
+              "rule_id": { "type": "string" },
+              "policy_id": { "type": "string" },
+              "result": { "enum": ["pass", "fail", "skip"] },
+              "severity": { "enum": ["error", "warning", "info"] },
+              "description": { "type": "string" },
+              "field_path": { "type": "string" },
+              "required_action": { "type": "string" }
+            }
+          }
+        },
+        "tags_detected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tag", "field_path"],
+            "properties": {
+              "tag": { "type": "string" },
+              "field_path": { "type": "string" },
+              "triggered_policies": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "coverage_metrics": {
+          "type": "object",
+          "properties": {
+            "structural_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "behavioral_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "failure_modes_covered": { "type": "integer" },
+            "failure_modes_total": { "type": "integer" },
+            "decision_rules_referenced": { "type": "integer" },
+            "decision_rules_total": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "audit_metadata": {
+      "type": "object",
+      "required": ["report_generated_at", "tool_version", "duration_ms"],
+      "properties": {
+        "report_generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "tool_version": {
+          "type": "string",
+          "description": "Skill-Spec CLI version"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Validation duration in milliseconds"
+        },
+        "spec_checksum": {
+          "type": "string",
+          "description": "MD5 checksum of spec.yaml"
+        },
+        "skill_md_checksum": {
+          "type": "string",
+          "description": "MD5 checksum of SKILL.md (if exists)"
+        },
+        "git_commit": {
+          "type": "string",
+          "description": "Git commit hash (if in repo)"
+        },
+        "ci_environment": {
+          "type": "object",
+          "description": "CI/CD environment metadata",
+          "properties": {
+            "ci_provider": { "type": "string" },
+            "build_id": { "type": "string" },
+            "branch": { "type": "string" },
+            "triggered_by": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "layer_result": {
+      "type": "object",
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "quality_result": {
+      "type": "object",
+      "properties": {
+        "valid": { "type": "boolean" },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "category": { "type": "string" },
+              "severity": { "enum": ["error", "warning"] },
+              "pattern": { "type": "string" },
+              "matched": { "type": "string" },
+              "fix": { "type": "string" }
+            }
+          }
+        },
+        "category_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" }
+        }
+      }
+    },
+    "coverage_result": {
+      "type": "object",
+      "properties": {
+        "valid": { "type": "boolean" },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "category": { "type": "string" },
+              "item": { "type": "string" },
+              "description": { "type": "string" },
+              "severity": { "enum": ["error", "warning"] }
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "structural_score": { "type": "number" },
+            "behavioral_score": { "type": "number" }
+          }
+        }
+      }
+    },
+    "compliance_result": {
+      "type": "object",
+      "properties": {
+        "valid": { "type": "boolean" },
+        "policies_checked": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "policy_id": { "type": "string" },
+              "rule_id": { "type": "string" },
+              "category": { "type": "string" },
+              "severity": { "enum": ["error", "warning", "info"] },
+              "description": { "type": "string" },
+              "field_path": { "type": "string" },
+              "required_action": { "type": "string" }
+            }
+          }
+        },
+        "category_summary": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "passed": { "type": "integer" },
+              "failed": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "taxonomy_result": {
+      "type": "object",
+      "properties": {
+        "valid": { "type": "boolean" },
+        "recognized_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tag": { "type": "string" },
+              "field_path": { "type": "string" },
+              "issue_type": { "type": "string" },
+              "message": { "type": "string" },
+              "suggestion": { "type": "string" },
+              "severity": { "enum": ["error", "warning"] }
+            }
+          }
+        },
+        "triggered_policies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

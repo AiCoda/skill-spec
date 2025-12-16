@@ -1,0 +1,516 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "skill-spec/1.0",
+  "title": "Skill-Spec Schema v1.0",
+  "description": "JSON Schema for Skill-Spec specification files. Section Taxonomy: 8 Core (required) + 1 Coverage (required) + 1 Context (optional)",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "skill",
+    "inputs",
+    "preconditions",
+    "non_goals",
+    "decision_rules",
+    "steps",
+    "output_contract",
+    "failure_modes",
+    "edge_cases"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "const": "skill-spec/1.0",
+      "description": "Schema version identifier"
+    },
+    "_meta": {
+      "$ref": "#/definitions/MetaConfig"
+    },
+    "skill": {
+      "$ref": "#/definitions/SkillMetadata"
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Input contract definitions",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/InputSpec"
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "description": "Prerequisites that must be true before skill execution",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "description": "Explicit statements of what this skill does NOT do",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "decision_rules": {
+      "$ref": "#/definitions/DecisionRules"
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered execution steps",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/ExecutionStep"
+      }
+    },
+    "output_contract": {
+      "$ref": "#/definitions/OutputContract"
+    },
+    "failure_modes": {
+      "type": "array",
+      "description": "Designed failure scenarios",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/FailureMode"
+      }
+    },
+    "edge_cases": {
+      "type": "array",
+      "description": "Boundary conditions and edge cases (Coverage section - required)",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/EdgeCase"
+      }
+    },
+    "context": {
+      "$ref": "#/definitions/ContextInfo"
+    },
+    "examples": {
+      "type": "array",
+      "description": "Usage examples (recommended for Anthropic format)",
+      "items": {
+        "$ref": "#/definitions/Example"
+      }
+    }
+  },
+  "definitions": {
+    "MetaConfig": {
+      "type": "object",
+      "description": "Meta configuration for the spec",
+      "properties": {
+        "content_language": {
+          "type": "string",
+          "enum": ["en", "zh", "auto"],
+          "default": "en",
+          "description": "Primary content language"
+        },
+        "mixed_language_strategy": {
+          "type": "string",
+          "enum": ["union", "segment_detect", "primary"],
+          "default": "union",
+          "description": "Strategy for mixed language validation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SkillMetadata": {
+      "type": "object",
+      "description": "Core skill metadata (Section 1)",
+      "required": ["name", "version", "purpose", "owner"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "Kebab-case skill name (verb-object pattern)",
+          "examples": ["extract-api-contract", "code-review-assistant"]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version (MAJOR.MINOR.PATCH)"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 200,
+          "description": "Single sentence purpose statement"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Team or individual responsible"
+        }
+      }
+    },
+    "InputSpec": {
+      "type": "object",
+      "description": "Input specification with domain support (Section 2)",
+      "required": ["name", "type", "required"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Input parameter name (snake_case)"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "object", "array"],
+          "description": "Data type"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this input is required"
+        },
+        "constraints": {
+          "type": "array",
+          "description": "Validation constraints",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["not_empty", "not_null", "positive", "non_negative"]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "max_length": {
+                    "oneOf": [
+                      {"type": "integer", "minimum": 1},
+                      {
+                        "type": "object",
+                        "required": ["value"],
+                        "properties": {
+                          "value": {"type": "integer", "minimum": 1},
+                          "mode": {"type": "string", "enum": ["chars", "tokens", "info_units"]},
+                          "override_reason": {"type": "string"}
+                        }
+                      }
+                    ]
+                  },
+                  "min_length": {"type": "integer", "minimum": 0},
+                  "max_value": {"type": "number"},
+                  "min_value": {"type": "number"},
+                  "pattern": {"type": "string"},
+                  "enum": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "domain": {
+          "$ref": "#/definitions/InputDomain"
+        },
+        "description": {
+          "type": "string",
+          "description": "Semantic definition of this input"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Data classification tags",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "InputDomain": {
+      "type": "object",
+      "description": "Domain specification for coverage analysis",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["enum", "range", "pattern_set", "boolean", "any"],
+          "description": "Domain type for coverage calculation"
+        },
+        "values": {
+          "type": "array",
+          "description": "Enum values (for type: enum)",
+          "items": {}
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum value (for type: range)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value (for type: range)"
+        },
+        "patterns": {
+          "type": "array",
+          "description": "Pattern set (for type: pattern_set)",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "DecisionRules": {
+      "type": "object",
+      "description": "Decision rules with configuration (Section 5). Supports two formats: 1) _config + rules (nested list), 2) _config + rule_name (direct key-value pairs)",
+      "required": [],
+      "properties": {
+        "_config": {
+          "$ref": "#/definitions/DecisionRulesConfig"
+        },
+        "rules": {
+          "type": "array",
+          "description": "List of decision rules (nested format)",
+          "items": {
+            "$ref": "#/definitions/DecisionRule"
+          }
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/DecisionRule"
+      },
+      "patternProperties": {
+        "^(?!_config$|rules$).*$": {
+          "$ref": "#/definitions/DecisionRule"
+        }
+      }
+    },
+    "DecisionRulesConfig": {
+      "type": "object",
+      "description": "Configuration for decision rule matching",
+      "properties": {
+        "match_strategy": {
+          "type": "string",
+          "enum": ["first_match", "priority", "all_match"],
+          "default": "first_match",
+          "description": "How to select matching rules"
+        },
+        "conflict_resolution": {
+          "type": "string",
+          "enum": ["error", "warn", "first_wins"],
+          "default": "error",
+          "description": "How to handle multiple matches"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DecisionRule": {
+      "type": "object",
+      "description": "Individual decision rule",
+      "required": ["id", "when", "then"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique rule identifier"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Rule priority (higher = checked first)"
+        },
+        "is_default": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this is the default/fallback rule"
+        },
+        "when": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "boolean"},
+            {"type": "object"}
+          ],
+          "description": "Condition expression (simple syntax or JSON Logic)"
+        },
+        "then": {
+          "type": "object",
+          "description": "Action to take when condition matches",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["success", "error", "skip", "delegate"]
+            },
+            "code": {
+              "type": "string",
+              "description": "Error or result code"
+            },
+            "action": {
+              "type": "string",
+              "description": "Action to execute"
+            },
+            "path": {
+              "type": "string",
+              "description": "Execution path to follow"
+            },
+            "log": {
+              "type": "string",
+              "enum": ["debug", "info", "warning", "error"]
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "ExecutionStep": {
+      "type": "object",
+      "description": "Execution step definition (Section 6)",
+      "required": ["id", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique step identifier"
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Action to perform"
+        },
+        "output": {
+          "type": "string",
+          "description": "Output variable name"
+        },
+        "based_on": {
+          "type": "array",
+          "description": "Input dependencies from previous steps",
+          "items": {"type": "string"}
+        },
+        "condition": {
+          "type": "string",
+          "description": "Optional condition for step execution"
+        }
+      }
+    },
+    "OutputContract": {
+      "type": "object",
+      "description": "Output contract specification (Section 7)",
+      "required": ["format", "schema"],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["json", "text", "markdown", "yaml", "binary"],
+          "description": "Output format"
+        },
+        "schema": {
+          "type": "object",
+          "description": "JSON Schema for output validation"
+        }
+      }
+    },
+    "FailureMode": {
+      "type": "object",
+      "description": "Failure mode definition (Section 8)",
+      "required": ["code", "retryable"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "description": "Error code (UPPER_SNAKE_CASE)"
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "Whether this failure can be retried"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description"
+        },
+        "recovery_hint": {
+          "type": "string",
+          "description": "Suggestion for recovery"
+        }
+      }
+    },
+    "EdgeCase": {
+      "type": "object",
+      "description": "Edge case definition (Section 9 - Coverage)",
+      "required": ["case", "expected"],
+      "additionalProperties": false,
+      "properties": {
+        "case": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Edge case name/description"
+        },
+        "expected": {
+          "type": "object",
+          "description": "Expected behavior for this case"
+        },
+        "input_example": {
+          "description": "Example input that triggers this case"
+        },
+        "covers_rule": {
+          "type": "string",
+          "description": "Which decision_rule this case tests"
+        },
+        "covers_failure": {
+          "type": "string",
+          "description": "Which failure_mode this case tests"
+        }
+      }
+    },
+    "ContextInfo": {
+      "type": "object",
+      "description": "Context and collaboration info (Section 10 - optional)",
+      "additionalProperties": false,
+      "properties": {
+        "works_with": {
+          "type": "array",
+          "description": "Related skills that work well together",
+          "items": {
+            "type": "object",
+            "required": ["skill", "reason"],
+            "properties": {
+              "skill": {"type": "string"},
+              "reason": {"type": "string"}
+            }
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "description": "What user needs to do before using this skill",
+          "items": {"type": "string"}
+        },
+        "scenarios": {
+          "type": "array",
+          "description": "Typical usage scenarios",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "Example": {
+      "type": "object",
+      "description": "Usage example (for Anthropic format)",
+      "required": ["name", "input", "output"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Example name"
+        },
+        "input": {
+          "description": "Example input values"
+        },
+        "output": {
+          "description": "Expected output"
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Explanation of what happens"
+        }
+      }
+    }
+  }
+}

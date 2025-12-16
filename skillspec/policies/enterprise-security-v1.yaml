@@ -1,0 +1,93 @@
+# Enterprise Security Policy v1.0
+# Security requirements for skills handling sensitive data
+
+policy:
+  id: "enterprise-security-v1"
+  name: "Enterprise Security Policy"
+  version: "1.0.0"
+  description: "Security requirements for enterprise skill deployment"
+
+# Security Rules
+security_rules:
+  - id: "pii_requires_edge_cases"
+    severity: error
+    description: "Skills handling PII must have error handling edge cases"
+    condition:
+      type: any_input_has_tag
+      tags: ["pii", "pii:direct", "pii:indirect", "pii:sensitive"]
+    required_action:
+      type: require_edge_case
+      pattern: "error"
+
+  - id: "credentials_never_output"
+    severity: error
+    description: "Skills handling credentials must not output them"
+    condition:
+      type: any_input_has_tag
+      tags: ["auth:credential"]
+    required_action:
+      type: require_field
+      path: "non_goals"
+
+  - id: "external_api_requires_failure_modes"
+    severity: warning
+    description: "Skills using external APIs must define failure modes"
+    condition:
+      type: uses_external_service
+    required_action:
+      type: require_section
+      section: "failure_modes"
+
+  - id: "financial_requires_audit"
+    severity: error
+    description: "Skills handling financial data must have audit capability"
+    condition:
+      type: any_input_has_tag
+      tags: ["financial:payment", "financial:banking", "financial:transaction"]
+    required_action:
+      type: require_edge_case
+      pattern: "audit"
+
+# Architecture Rules
+architecture_rules:
+  - id: "must_have_input_validation"
+    severity: warning
+    description: "All skills should validate inputs"
+    condition:
+      type: has_field
+      path: "inputs"
+    required_action:
+      type: require_edge_case
+      pattern: "invalid"
+
+  - id: "must_have_default_path"
+    severity: warning
+    description: "Decision rules should have a default path"
+    condition:
+      type: has_field
+      path: "decision_rules"
+    required_action:
+      type: require_field
+      path: "decision_rules"
+
+# Process Rules
+process_rules:
+  - id: "must_define_owner"
+    severity: info
+    description: "Skills should have a defined owner"
+    condition:
+      type: has_field
+      path: "skill"
+    required_action:
+      type: require_field
+      path: "skill.owner"
+
+  - id: "must_have_purpose"
+    severity: error
+    description: "Skills must have a clear purpose statement"
+    condition:
+      type: has_field
+      path: "skill"
+    required_action:
+      type: require_field
+      path: "skill.purpose"
