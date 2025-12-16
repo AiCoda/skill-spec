@@ -55,8 +55,9 @@ Don't just write a prompt. Build a Skill.
 
 ### Installation
 
+```bash
 # Clone the repository
-git clone https://github.com/AiCoda/skill-spec/skill-spec.git
+https://github.com/AiCoda/skill-spec/skill-spec.git
 cd skill-spec
 
 # Install from source
