@@ -110,7 +110,7 @@ skillspec setup              # Initialize project
 |---------|-------------|
 | `/skill-spec:proposal <name>` | Interactive skill creation + validation |
 | `/skill-spec:apply <name>` | Generate SKILL.md from spec |
-| `/skill-spec:deploy <name>` | Publish skill to skills/ |
+| `/skill-spec:deploy <name>` | deploy your skill to dir/ eg. .claude/skills |
 | `/skill-spec:migrate <path>` | Migrate existing skill |
 
 ---
