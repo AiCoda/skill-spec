@@ -488,18 +488,24 @@ class SkillMigrator:
     def _create_default_decision_rules(
         self,
         result: MigrationResult,
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Create default decision rules placeholder."""
         result.todos.append("Define decision_rules based on skill logic")
-        return [{
-            "id": "rule_default",
-            "is_default": True,
-            "when": True,
-            "then": {
-                "status": "success",
-                "path": "default",
+        return {
+            "_config": {
+                "match_strategy": "first_match",
+                "conflict_resolution": "error",
             },
-        }]
+            "rules": [{
+                "id": "rule_default",
+                "is_default": True,
+                "when": True,
+                "then": {
+                    "status": "success",
+                    "path": "default",
+                },
+            }],
+        }
 
     def _extract_steps(
         self,

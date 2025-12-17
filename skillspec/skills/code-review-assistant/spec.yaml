@@ -84,49 +84,50 @@ decision_rules:
     match_strategy: all_match
     conflict_resolution: warn
 
-  - id: rule_security_critical
-    priority: 100
-    when: "contains(code_diff, 'password') or contains(code_diff, 'secret') or contains(code_diff, 'api_key')"
-    then:
-      status: warning
-      path: security_review
-      action: "Perform deep security analysis for sensitive data handling"
-      flags: [high_priority]
+  rules:
+    - id: rule_security_critical
+      priority: 100
+      when: "contains(code_diff, 'password') or contains(code_diff, 'secret') or contains(code_diff, 'api_key')"
+      then:
+        status: warning
+        path: security_review
+        action: "Perform deep security analysis for sensitive data handling"
+        flags: [high_priority]
 
-  - id: rule_test_file
-    priority: 50
-    when: "contains(file_path, 'test') or contains(file_path, '_spec')"
-    then:
-      status: success
-      path: test_review
-      action: "Apply test-specific review criteria"
-      skip_areas: [style]
+    - id: rule_test_file
+      priority: 50
+      when: "contains(file_path, 'test') or contains(file_path, '_spec')"
+      then:
+        status: success
+        path: test_review
+        action: "Apply test-specific review criteria"
+        skip_areas: [style]
 
-  - id: rule_config_file
-    priority: 50
-    when: "matches(file_path, '.*\\.(json|yaml|yml|toml|ini)$')"
-    then:
-      status: success
-      path: config_review
-      action: "Apply configuration file review criteria"
-      skip_areas: [testing, documentation]
+    - id: rule_config_file
+      priority: 50
+      when: "matches(file_path, '.*\\.(json|yaml|yml|toml|ini)$')"
+      then:
+        status: success
+        path: config_review
+        action: "Apply configuration file review criteria"
+        skip_areas: [testing, documentation]
 
-  - id: rule_large_change
-    priority: 30
-    when: "len(code_diff) > 5000"
-    then:
-      status: info
-      path: chunked_review
-      action: "Break down into focused review sections"
-      flags: [needs_summary]
+    - id: rule_large_change
+      priority: 30
+      when: "len(code_diff) > 5000"
+      then:
+        status: info
+        path: chunked_review
+        action: "Break down into focused review sections"
+        flags: [needs_summary]
 
-  - id: rule_standard_review
-    is_default: true
-    when: true
-    then:
-      status: success
-      path: standard_review
-      action: "Apply standard code review checklist"
+    - id: rule_standard_review
+      is_default: true
+      when: true
+      then:
+        status: success
+        path: standard_review
+        action: "Apply standard code review checklist"
 
 steps:
   - id: parse_diff

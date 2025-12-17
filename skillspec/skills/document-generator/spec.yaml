@@ -74,47 +74,52 @@ non_goals:
   - "生成用户界面文本"
 
 decision_rules:
-  - id: rule_api_reference
-    when: "doc_type == 'api_reference'"
-    then:
-      status: success
-      path: api_reference_generation
-      action: "生成 API 参考文档，包含端点、参数和响应说明"
+  _config:
+    match_strategy: first_match
+    conflict_resolution: error
 
-  - id: rule_user_guide
-    when: "doc_type == 'user_guide'"
-    then:
-      status: success
-      path: user_guide_generation
-      action: "生成用户指南，包含安装、配置和使用说明"
+  rules:
+    - id: rule_api_reference
+      when: "doc_type == 'api_reference'"
+      then:
+        status: success
+        path: api_reference_generation
+        action: "生成 API 参考文档，包含端点、参数和响应说明"
 
-  - id: rule_readme
-    when: "doc_type == 'readme'"
-    then:
-      status: success
-      path: readme_generation
-      action: "生成 README 文件，包含项目概述和快速开始指南"
+    - id: rule_user_guide
+      when: "doc_type == 'user_guide'"
+      then:
+        status: success
+        path: user_guide_generation
+        action: "生成用户指南，包含安装、配置和使用说明"
 
-  - id: rule_changelog
-    when: "doc_type == 'changelog'"
-    then:
-      status: success
-      path: changelog_generation
-      action: "生成变更日志，按版本组织变更内容"
+    - id: rule_readme
+      when: "doc_type == 'readme'"
+      then:
+        status: success
+        path: readme_generation
+        action: "生成 README 文件，包含项目概述和快速开始指南"
 
-  - id: rule_architecture
-    when: "doc_type == 'architecture'"
-    then:
-      status: success
-      path: architecture_generation
-      action: "生成架构文档，包含系统设计和组件说明"
+    - id: rule_changelog
+      when: "doc_type == 'changelog'"
+      then:
+        status: success
+        path: changelog_generation
+        action: "生成变更日志，按版本组织变更内容"
 
-  - id: rule_default
-    is_default: true
-    when: true
-    then:
-      status: error
-      code: UNSUPPORTED_DOC_TYPE
+    - id: rule_architecture
+      when: "doc_type == 'architecture'"
+      then:
+        status: success
+        path: architecture_generation
+        action: "生成架构文档，包含系统设计和组件说明"
+
+    - id: rule_default
+      is_default: true
+      when: true
+      then:
+        status: error
+        code: UNSUPPORTED_DOC_TYPE
 
 steps:
   - id: parse_source

@@ -98,12 +98,16 @@ non_goals:
   - "TODO: Explicitly state what is out of scope"
 
 decision_rules:
-  - id: rule_default
-    is_default: true
-    when: true
-    then:
-      status: success
-      path: default
+  _config:
+    match_strategy: first_match
+    conflict_resolution: error
+  rules:
+    - id: rule_default
+      is_default: true
+      when: true
+      then:
+        status: success
+        path: default
 
 steps:
   - id: process
@@ -942,9 +946,18 @@ def _generate_skill_md(spec_data: dict) -> str:
 
     # Extract triggers from decision rules for description
     triggers = []
-    rules = decision_rules if isinstance(decision_rules, list) else [
-        v for k, v in decision_rules.items() if k != "_config"
-    ]
+    # Handle all decision_rules formats:
+    # 1. Canonical: {"_config": {...}, "rules": [...]}
+    # 2. Legacy key-value: {"_config": {...}, "rule_id": {...}, ...}
+    # 3. Legacy list: [{...}, {...}]
+    if isinstance(decision_rules, list):
+        rules = decision_rules
+    elif isinstance(decision_rules, dict) and "rules" in decision_rules:
+        rules = decision_rules["rules"]
+    elif isinstance(decision_rules, dict):
+        rules = [v for k, v in decision_rules.items() if k != "_config"]
+    else:
+        rules = []
     for rule in rules[:3]:  # First 3 rules
         if isinstance(rule, dict) and rule.get("when") and rule.get("when") is not True:
             triggers.append(str(rule["when"]))

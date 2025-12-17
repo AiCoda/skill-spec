@@ -217,15 +217,25 @@ class TargetRegistry:
 class BundleCreator:
     """
     Creates deployment bundles for skills.
+
+    Bundle is meant for runtime deployment (e.g., to .claude/skills/).
+    Only includes files needed at runtime, NOT spec.yaml which is for
+    development and version control only.
     """
 
-    # Files to include in the bundle
+    # Files to include in the runtime bundle
+    # Note: spec.yaml is intentionally excluded - it's for development only
     BUNDLE_FILES = [
-        "spec.yaml",
         "SKILL.md",
     ]
 
-    # Optional files to include if present
+    # Resource directories to include if present
+    RESOURCE_DIRS = [
+        "resources/",
+        "scripts/",
+    ]
+
+    # Optional files to include if present (with --include-optional)
     OPTIONAL_FILES = [
         "examples/",
         "tests/",
@@ -266,11 +276,21 @@ class BundleCreator:
         # Collect files to bundle
         files_to_bundle: List[Path] = []
 
+        # Add required files (SKILL.md)
         for filename in self.BUNDLE_FILES:
             file_path = self.skill_dir / filename
             if file_path.exists():
                 files_to_bundle.append(file_path)
 
+        # Add resource directories if present (resources/, scripts/)
+        for dirname in self.RESOURCE_DIRS:
+            dir_path = self.skill_dir / dirname
+            if dir_path.exists() and dir_path.is_dir():
+                for f in dir_path.rglob("*"):
+                    if f.is_file():
+                        files_to_bundle.append(f)
+
+        # Add optional files if requested (tests, examples)
         if include_optional:
             for item in self.OPTIONAL_FILES:
                 item_path = self.skill_dir / item

@@ -52,33 +52,38 @@ non_goals:
   - "Handle authentication or authorization logic"
 
 decision_rules:
-  - id: rule_openapi_source
-    when: "source_type == 'openapi' or source_type == 'swagger'"
-    then:
-      status: success
-      path: parse_openapi
-      action: "Parse and normalize OpenAPI specification"
+  _config:
+    match_strategy: first_match
+    conflict_resolution: error
 
-  - id: rule_code_source
-    when: "source_type == 'code'"
-    then:
-      status: success
-      path: analyze_code
-      action: "Extract API patterns from source code"
+  rules:
+    - id: rule_openapi_source
+      when: "source_type == 'openapi' or source_type == 'swagger'"
+      then:
+        status: success
+        path: parse_openapi
+        action: "Parse and normalize OpenAPI specification"
 
-  - id: rule_doc_source
-    when: "source_type == 'documentation'"
-    then:
-      status: success
-      path: parse_documentation
-      action: "Extract structured information from documentation"
+    - id: rule_code_source
+      when: "source_type == 'code'"
+      then:
+        status: success
+        path: analyze_code
+        action: "Extract API patterns from source code"
 
-  - id: rule_default
-    is_default: true
-    when: true
-    then:
-      status: error
-      code: UNSUPPORTED_SOURCE
+    - id: rule_doc_source
+      when: "source_type == 'documentation'"
+      then:
+        status: success
+        path: parse_documentation
+        action: "Extract structured information from documentation"
+
+    - id: rule_default
+      is_default: true
+      when: true
+      then:
+        status: error
+        code: UNSUPPORTED_SOURCE
 
 steps:
   - id: validate_input

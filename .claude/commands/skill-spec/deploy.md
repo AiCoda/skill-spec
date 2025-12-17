@@ -4,19 +4,28 @@ description: "Publish skill from drafts/ to skills/ directory"
 ---
 
 <!-- SKILL-SPEC:START -->
+**Directory Structure**
+```
+skillspec/drafts/<name>/   - Development (spec.yaml + SKILL.md)
+skillspec/skills/<name>/   - Published archive (spec.yaml + SKILL.md)
+<user-specified>/          - Runtime target (SKILL.md + resources only)
+```
+
 **Guardrails**
 - Always validate before deploying
 - Confirm with user before moving files
 - Archive old version if exists
+- Runtime deployment excludes spec.yaml (only SKILL.md + resources)
 
 **Arguments**
-- `$ARGUMENTS` contains the skill name to deploy
+- `$ARGUMENTS` contains: `<skill-name> [--target <path>]`
 
 **Steps**
 
-1. **Determine skill name**
-   - Extract from `$ARGUMENTS`
-   - If not provided, run `skillspec list --drafts` and ask user to select
+1. **Determine skill name and target**
+   - Extract skill name from `$ARGUMENTS`
+   - Extract `--target` path if provided
+   - If skill name not provided, run `skillspec list --drafts` and ask user to select
 
 2. **Validate skill exists**
    - Check `skillspec/drafts/<name>/` exists
@@ -35,55 +44,64 @@ description: "Publish skill from drafts/ to skills/ directory"
    Existing version: 1.0.0
    New version: 1.1.0
 
-   Changes:
-   - Added 2 new inputs
-   - Modified 3 decision rules
-   - Added 1 edge case
-
    Old version will be archived to:
    skillspec/archive/YYYY-MM-DD-<name>/
 
    Proceed? [y/n]
    ```
 
-5. **Confirm deployment**
+5. **Confirm publish (drafts → skills)**
    ```
-   Ready to deploy: <name>
+   Ready to publish: <name>
 
    From: skillspec/drafts/<name>/
    To:   skillspec/skills/<name>/
 
-   This will:
-   - Move spec.yaml to skills/
-   - Move SKILL.md to skills/
-   - Move scripts/ and resources/ if present
+   This will move the complete skill package:
+   - spec.yaml (for version control)
+   - SKILL.md (generated skill)
+   - resources/ and scripts/ if present
 
    Proceed? [y/n]
    ```
 
-6. **Execute deployment**
+6. **Execute publish**
    ```bash
    skillspec publish <name>
    ```
 
-7. **Verify deployment**
+7. **Deploy to runtime target (if --target specified)**
+   If target path provided:
+   ```
+   Deploy to runtime: <target>/<name>/
+
+   Files to copy (spec.yaml excluded):
+   - SKILL.md
+   - resources/ (if present)
+   - scripts/ (if present)
+
+   Proceed? [y/n]
+   ```
+
+   Copy only runtime files:
+   ```bash
+   mkdir -p <target>/<name>
+   cp skillspec/skills/<name>/SKILL.md <target>/<name>/
+   # Copy resources/ and scripts/ if present
+   ```
+
+8. **Verify**
    ```bash
    skillspec list
-   skillspec validate <name> --strict
    ```
 
-8. **Show completion**
+9. **Show completion**
    ```
-   Deploy complete: skillspec/skills/<name>/
-
-   The skill is now published and available for use.
-
-   To deploy to another project:
-     skillspec deploy bundle <name>
-     skillspec deploy preflight <name> --target=/path/to/project
-
-   To view the deployed skill:
-     skillspec show <name>
+   Published: skillspec/skills/<name>/
+   ```
+   If target was specified:
+   ```
+   Deployed: <target>/<name>/ (SKILL.md + resources only)
    ```
 
 **Deployment Commands**

@@ -53,20 +53,21 @@ decision_rules:
     match_strategy: first_match  # first_match | priority | all_match
     conflict_resolution: error   # error | warn | first_wins
 
-  - id: rule_validation_fail
-    priority: 10
-    when: "is_empty(TODO_input_name)"
-    then:
-      status: error
-      code: EMPTY_INPUT
+  rules:
+    - id: rule_validation_fail
+      priority: 10
+      when: "is_empty(TODO_input_name)"
+      then:
+        status: error
+        code: EMPTY_INPUT
 
-  - id: rule_default
-    priority: 0
-    is_default: true
-    when: true
-    then:
-      status: success
-      path: default
+    - id: rule_default
+      priority: 0
+      is_default: true
+      when: true
+      then:
+        status: success
+        path: default
 
 # 6. Steps (Execution Flow)
 steps:

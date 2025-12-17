@@ -367,18 +367,36 @@ class DecisionRules(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def extract_rules(cls, values: Any) -> Any:
-        """Extract rules from the raw decision_rules dict/list."""
+        """
+        Extract rules from the raw decision_rules dict/list.
+
+        Supports three formats:
+        1. Canonical format: {"_config": {...}, "rules": [...]}
+        2. Legacy key-value format: {"_config": {...}, "rule_id": {...}, ...}
+        3. Legacy list format: [{...}, {...}]
+        """
         if isinstance(values, dict):
-            config = values.pop("_config", {})
-            # Convert remaining items to rules list
+            config = values.get("_config", {})
+
+            # Format 1: Canonical format with rules key
+            if "rules" in values:
+                return {"_config": config, "rules": values["rules"]}
+
+            # Format 2: Legacy key-value format (rules as direct properties)
             rules = []
             for key, value in values.items():
-                if isinstance(value, dict) and "id" not in value:
-                    value["id"] = key
-                rules.append(value)
+                if key == "_config":
+                    continue
+                if isinstance(value, dict):
+                    if "id" not in value:
+                        value = {**value, "id": key}
+                    rules.append(value)
             return {"_config": config, "rules": rules}
+
         elif isinstance(values, list):
-            return {"rules": values}
+            # Format 3: Legacy list format
+            return {"_config": {}, "rules": values}
+
         return values
 
 

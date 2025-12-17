@@ -83,41 +83,46 @@ non_goals:
   - "Check for unused imports or dead code"
 
 decision_rules:
-  - id: rule_no_files
-    when: "len(source_files) == 0"
-    then:
-      status: error
-      code: NO_SOURCE_FILES
-      message: "No source files provided for analysis"
+  _config:
+    match_strategy: first_match
+    conflict_resolution: error
 
-  - id: rule_invalid_layer_config
-    when: "len(layer_config.layers) < 2"
-    then:
-      status: error
-      code: INVALID_LAYER_CONFIG
-      message: "Layer configuration must define at least 2 layers"
+  rules:
+    - id: rule_no_files
+      when: "len(source_files) == 0"
+      then:
+        status: error
+        code: NO_SOURCE_FILES
+        message: "No source files provided for analysis"
 
-  - id: rule_violations_found_strict
-    when: "strict_mode == true and has_violations == true"
-    then:
-      status: error
-      path: report_violations
-      action: "Report all violations as errors"
+    - id: rule_invalid_layer_config
+      when: "len(layer_config.layers) < 2"
+      then:
+        status: error
+        code: INVALID_LAYER_CONFIG
+        message: "Layer configuration must define at least 2 layers"
 
-  - id: rule_violations_found
-    when: "has_violations == true"
-    then:
-      status: warning
-      path: report_violations
-      action: "Report violations as warnings"
+    - id: rule_violations_found_strict
+      when: "strict_mode == true and has_violations == true"
+      then:
+        status: error
+        path: report_violations
+        action: "Report all violations as errors"
 
-  - id: rule_clean
-    is_default: true
-    when: true
-    then:
-      status: success
-      path: report_clean
-      message: "No layer violations detected"
+    - id: rule_violations_found
+      when: "has_violations == true"
+      then:
+        status: warning
+        path: report_violations
+        action: "Report violations as warnings"
+
+    - id: rule_clean
+      is_default: true
+      when: true
+      then:
+        status: success
+        path: report_clean
+        message: "No layer violations detected"
 
 steps:
   - id: parse_layer_config
