@@ -949,7 +949,13 @@ def generate(name: str, force: bool, no_preserve: bool):
 
 
 def _generate_skill_md(spec_data: dict) -> str:
-    """Generate SKILL.md content from spec data."""
+    """Generate SKILL.md content from spec data.
+
+    Generates agentskills.io compatible format with:
+    - YAML frontmatter (name, description, license, compatibility, allowed-tools)
+    - Markdown body with structured sections
+    - Progressive disclosure support
+    """
     skill = spec_data.get("skill", {})
     inputs = spec_data.get("inputs", [])
     non_goals = spec_data.get("non_goals", [])
@@ -960,33 +966,53 @@ def _generate_skill_md(spec_data: dict) -> str:
     output_contract = spec_data.get("output_contract", {})
     failure_modes = spec_data.get("failure_modes", [])
     context = spec_data.get("context", {})
+    triggers_section = spec_data.get("triggers", {})
+    boundaries = spec_data.get("boundaries", {})
 
-    # Extract triggers from decision rules for description
+    # Extract triggers from triggers section or decision rules for description
     triggers = []
-    # Handle all decision_rules formats:
-    # 1. Canonical: {"_config": {...}, "rules": [...]}
-    # 2. Legacy key-value: {"_config": {...}, "rule_id": {...}, ...}
-    # 3. Legacy list: [{...}, {...}]
-    if isinstance(decision_rules, list):
-        rules = decision_rules
-    elif isinstance(decision_rules, dict) and "rules" in decision_rules:
-        rules = decision_rules["rules"]
-    elif isinstance(decision_rules, dict):
-        rules = [v for k, v in decision_rules.items() if k != "_config"]
+    # First try triggers section (v1.1+)
+    if triggers_section.get("use_when"):
+        triggers = triggers_section["use_when"][:3]
     else:
-        rules = []
-    for rule in rules[:3]:  # First 3 rules
-        if isinstance(rule, dict) and rule.get("when") and rule.get("when") is not True:
-            triggers.append(str(rule["when"]))
+        # Fallback: Handle all decision_rules formats
+        if isinstance(decision_rules, list):
+            rules = decision_rules
+        elif isinstance(decision_rules, dict) and "rules" in decision_rules:
+            rules = decision_rules["rules"]
+        elif isinstance(decision_rules, dict):
+            rules = [v for k, v in decision_rules.items() if k != "_config"]
+        else:
+            rules = []
+        for rule in rules[:3]:  # First 3 rules
+            if isinstance(rule, dict) and rule.get("when") and rule.get("when") is not True:
+                triggers.append(str(rule["when"]))
 
     trigger_text = " | ".join(triggers) if triggers else "general use"
 
     lines = []
 
-    # Frontmatter
+    # Frontmatter (agentskills.io compatible)
     lines.append("---")
     lines.append(f'name: "{skill.get("name", "")}"')
-    lines.append(f'description: "{skill.get("purpose", "")} Use when: {trigger_text}"')
+    # Description: purpose + triggers (agentskills.io format: 1-1024 chars)
+    description = f'{skill.get("purpose", "")} Use when: {trigger_text}'
+    if len(description) > 1024:
+        description = description[:1021] + "..."
+    lines.append(f'description: "{description}"')
+
+    # Optional agentskills.io fields
+    if skill.get("license"):
+        lines.append(f'license: "{skill.get("license")}"')
+
+    if skill.get("compatibility"):
+        lines.append(f'compatibility: "{skill.get("compatibility")}"')
+
+    if skill.get("allowed_tools"):
+        # agentskills.io uses space-delimited format
+        tools_str = " ".join(skill.get("allowed_tools"))
+        lines.append(f'allowed-tools: "{tools_str}"')
+
     lines.append("---")
     lines.append("")
 
@@ -1895,17 +1921,21 @@ def deploy_status(name: str):
 
 SCHEMA_SECTIONS = {
     "skill": {
-        "description": "Skill metadata - identity and classification",
+        "description": "Skill metadata - identity and classification (v1.2 adds agentskills.io fields)",
         "required": True,
         "fields": {
-            "name": ("string", "Kebab-case name, e.g., 'extract-api-contract'"),
+            "name": ("string", "Kebab-case name, 1-64 chars (agentskills.io compliant)"),
             "version": ("string", "Semantic version, e.g., '1.0.0'"),
-            "purpose": ("string", "Single sentence describing what this skill does"),
+            "purpose": ("string", "Single sentence, 1-1024 chars (maps to agentskills.io description)"),
             "owner": ("string", "Team or individual responsible"),
-            "category": ("string", "NEW v1.1: documentation|analysis|generation|transformation|validation|orchestration"),
-            "complexity": ("string", "NEW v1.1: low|standard|advanced"),
-            "tools_required": ("array", "NEW v1.1: Claude Code tools needed (Read, Write, Grep, etc.)"),
-            "personas": ("array", "NEW v1.1: Roles that benefit (developer, architect, etc.)"),
+            "category": ("string", "v1.1: documentation|analysis|generation|transformation|validation|orchestration"),
+            "complexity": ("string", "v1.1: low|standard|advanced"),
+            "tools_required": ("array", "v1.1: Claude Code tools needed (Read, Write, Grep, etc.)"),
+            "personas": ("array", "v1.1: Roles that benefit (developer, architect, etc.)"),
+            "license": ("string", "NEW v1.2 (agentskills.io): SPDX identifier, e.g., 'Apache-2.0'"),
+            "compatibility": ("string", "NEW v1.2 (agentskills.io): Environment requirements (max 500 chars)"),
+            "allowed_tools": ("array", "NEW v1.2 (agentskills.io): Pre-approved tools for execution"),
+            "metadata": ("object", "NEW v1.2 (agentskills.io): Custom key-value properties"),
         },
     },
     "triggers": {
@@ -2042,13 +2072,17 @@ SCHEMA_SECTIONS = {
         },
     },
     "_meta": {
-        "description": "Meta configuration - spec behavior settings",
+        "description": "Meta configuration - spec behavior settings (v1.2 adds agentskills.io support)",
         "required": False,
         "fields": {
             "content_language": ("string", "en|zh|auto"),
             "mixed_language_strategy": ("string", "union|segment_detect|primary"),
-            "format": ("string", "NEW v1.1: full|minimal"),
-            "token_budget": ("number", "NEW v1.1: Target word count for SKILL.md"),
+            "format": ("string", "v1.1: full|minimal"),
+            "token_budget": ("number", "v1.1: Target word count for SKILL.md"),
+            "agentskills_compat": ("boolean", "NEW v1.2: Enable agentskills.io compatibility mode"),
+            "progressive_disclosure.metadata_tokens": ("number", "NEW v1.2: Token budget for metadata (~100)"),
+            "progressive_disclosure.instructions_tokens": ("number", "NEW v1.2: Token budget for instructions (<5000)"),
+            "progressive_disclosure.max_lines": ("number", "NEW v1.2: Max lines for SKILL.md (<500)"),
         },
     },
 }

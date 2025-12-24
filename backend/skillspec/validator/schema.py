@@ -196,19 +196,80 @@ class SchemaValidator:
         result: SchemaValidationResult
     ) -> None:
         """Check spec_version field."""
-        valid_versions = {"skill-spec/1.0", "skill-spec/1.1"}
+        valid_versions = {"skill-spec/1.0", "skill-spec/1.1", "skill-spec/1.2"}
         if "spec_version" not in spec_data:
             result.add_error(
                 path="spec_version",
                 message="Missing required field: spec_version",
-                suggestion="Add 'spec_version: \"skill-spec/1.1\"'"
+                suggestion="Add 'spec_version: \"skill-spec/1.2\"'"
             )
         elif spec_data["spec_version"] not in valid_versions:
             result.add_warning(
                 path="spec_version",
                 message=f"Unknown spec version: {spec_data['spec_version']}",
-                suggestion="Use 'skill-spec/1.0' or 'skill-spec/1.1'"
+                suggestion="Use 'skill-spec/1.0', 'skill-spec/1.1', or 'skill-spec/1.2'"
             )
+
+        # Check agentskills.io compatibility mode
+        meta = spec_data.get("_meta", {})
+        if meta.get("agentskills_compat"):
+            self._validate_agentskills_compat(spec_data, result)
+
+    def _validate_agentskills_compat(
+        self,
+        spec_data: Dict[str, Any],
+        result: SchemaValidationResult
+    ) -> None:
+        """Validate agentskills.io compatibility constraints.
+
+        See: https://agentskills.io/specification
+
+        Constraints:
+        - name: 1-64 chars, lowercase alphanumeric with hyphens
+        - description (purpose): 1-1024 chars
+        - compatibility: max 500 chars
+        - Progressive disclosure: SKILL.md < 500 lines
+        """
+        skill = spec_data.get("skill", {})
+
+        # Validate name length (1-64 chars)
+        name = skill.get("name", "")
+        if len(name) > 64:
+            result.add_error(
+                path="skill.name",
+                message=f"agentskills.io: Name must be 1-64 chars, got {len(name)}",
+                suggestion="Shorten the skill name to 64 characters or less"
+            )
+
+        # Validate purpose/description length (1-1024 chars)
+        purpose = skill.get("purpose", "")
+        if len(purpose) > 1024:
+            result.add_error(
+                path="skill.purpose",
+                message=f"agentskills.io: Description must be 1-1024 chars, got {len(purpose)}",
+                suggestion="Shorten the purpose to 1024 characters or less"
+            )
+
+        # Validate compatibility length (max 500 chars)
+        compatibility = skill.get("compatibility", "")
+        if compatibility and len(compatibility) > 500:
+            result.add_error(
+                path="skill.compatibility",
+                message=f"agentskills.io: Compatibility must be max 500 chars, got {len(compatibility)}",
+                suggestion="Shorten the compatibility description to 500 characters or less"
+            )
+
+        # Check progressive disclosure settings
+        meta = spec_data.get("_meta", {})
+        progressive = meta.get("progressive_disclosure", {})
+        if progressive:
+            max_lines = progressive.get("max_lines", 500)
+            if max_lines > 500:
+                result.add_warning(
+                    path="_meta.progressive_disclosure.max_lines",
+                    message=f"agentskills.io recommends SKILL.md < 500 lines, got {max_lines}",
+                    suggestion="Consider keeping SKILL.md under 500 lines for better token efficiency"
+                )
 
     def _validate_with_pydantic(
         self,

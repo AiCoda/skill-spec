@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "skill-spec/1.1",
-  "title": "Skill-Spec Schema v1.1",
-  "description": "JSON Schema for Skill-Spec specification files. Section Taxonomy: 8 Core (required) + 1 Coverage (required) + Optional sections (triggers, boundaries, anti_patterns, behavioral_flow, context, examples)",
+  "$id": "skill-spec/1.2",
+  "title": "Skill-Spec Schema v1.2",
+  "description": "JSON Schema for Skill-Spec specification files. Section Taxonomy: 8 Core (required) + 1 Coverage (required) + Optional sections. v1.2 adds agentskills.io compatibility (https://agentskills.io/specification)",
   "type": "object",
   "required": [
     "spec_version",
@@ -20,7 +20,7 @@
   "properties": {
     "spec_version": {
       "type": "string",
-      "enum": ["skill-spec/1.0", "skill-spec/1.1"],
+      "enum": ["skill-spec/1.0", "skill-spec/1.1", "skill-spec/1.2"],
       "description": "Schema version identifier"
     },
     "_meta": {
@@ -137,20 +137,55 @@
           "maximum": 2000,
           "default": 500,
           "description": "v1.1: Target word count for generated SKILL.md (frequent skills: <200, standard: <500)"
+        },
+        "agentskills_compat": {
+          "type": "boolean",
+          "default": false,
+          "description": "v1.2: Enable agentskills.io compatibility mode. When true, validates against agentskills.io spec requirements"
+        },
+        "progressive_disclosure": {
+          "type": "object",
+          "description": "v1.2: Token budget configuration for progressive disclosure (agentskills.io pattern)",
+          "properties": {
+            "metadata_tokens": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 200,
+              "default": 100,
+              "description": "Target tokens for metadata section (~100 tokens recommended)"
+            },
+            "instructions_tokens": {
+              "type": "integer",
+              "minimum": 500,
+              "maximum": 5000,
+              "default": 2000,
+              "description": "Target tokens for instructions section (<5000 tokens recommended)"
+            },
+            "max_lines": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 1000,
+              "default": 500,
+              "description": "Maximum lines for main SKILL.md file (<500 lines recommended)"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     "SkillMetadata": {
       "type": "object",
-      "description": "Core skill metadata (Section 1)",
+      "description": "Core skill metadata (Section 1). v1.2 adds agentskills.io compatibility fields",
       "required": ["name", "version", "purpose", "owner"],
       "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
-          "description": "Kebab-case skill name (verb-object pattern)",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Kebab-case skill name (1-64 chars, agentskills.io compliant)",
           "examples": ["extract-api-contract", "code-review-assistant"]
         },
         "version": {
@@ -161,8 +196,8 @@
         "purpose": {
           "type": "string",
           "minLength": 10,
-          "maxLength": 500,
-          "description": "Single sentence purpose statement"
+          "maxLength": 1024,
+          "description": "Single sentence purpose statement. Maps to 'description' in agentskills.io format (1-1024 chars)"
         },
         "owner": {
           "type": "string",
@@ -195,6 +230,30 @@
             "type": "string"
           },
           "examples": [["developer", "architect"], ["technical-writer", "qa-specialist"]]
+        },
+        "license": {
+          "type": "string",
+          "description": "v1.2 (agentskills.io): SPDX license identifier or reference to bundled LICENSE file",
+          "examples": ["Apache-2.0", "MIT", "LICENSE"]
+        },
+        "compatibility": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "v1.2 (agentskills.io): Environment requirements, system packages, or network needs (max 500 chars)",
+          "examples": ["Requires Python 3.9+", "Needs network access for API calls"]
+        },
+        "allowed_tools": {
+          "type": "array",
+          "description": "v1.2 (agentskills.io): Pre-approved tools for execution (experimental). Space-delimited in SKILL.md",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["Read", "Write", "Bash"], ["WebFetch", "Grep"]]
+        },
+        "metadata": {
+          "type": "object",
+          "description": "v1.2 (agentskills.io): Custom key-value properties beyond the spec",
+          "additionalProperties": true
         }
       }
     },
@@ -439,29 +498,40 @@
       }
     },
     "DecisionRules": {
-      "type": "object",
-      "description": "Decision rules with configuration (Section 5). Supports two formats: 1) _config + rules (nested list), 2) _config + rule_name (direct key-value pairs)",
-      "required": [],
-      "properties": {
-        "_config": {
-          "$ref": "#/definitions/DecisionRulesConfig"
+      "description": "Decision rules with configuration (Section 5). Supports three formats: 1) _config + rules (canonical), 2) _config + rule_name (key-value pairs), 3) direct list of rules (legacy)",
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Object format: canonical (_config + rules) or key-value pairs",
+          "properties": {
+            "_config": {
+              "$ref": "#/definitions/DecisionRulesConfig"
+            },
+            "rules": {
+              "type": "array",
+              "description": "List of decision rules (nested format)",
+              "items": {
+                "$ref": "#/definitions/DecisionRule"
+              }
+            }
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/DecisionRule"
+          },
+          "patternProperties": {
+            "^(?!_config$|rules$).*$": {
+              "$ref": "#/definitions/DecisionRule"
+            }
+          }
         },
-        "rules": {
+        {
           "type": "array",
-          "description": "List of decision rules (nested format)",
+          "description": "Legacy list format: direct array of rules",
           "items": {
             "$ref": "#/definitions/DecisionRule"
           }
         }
-      },
-      "additionalProperties": {
-        "$ref": "#/definitions/DecisionRule"
-      },
-      "patternProperties": {
-        "^(?!_config$|rules$).*$": {
-          "$ref": "#/definitions/DecisionRule"
-        }
-      }
+      ]
     },
     "DecisionRulesConfig": {
       "type": "object",

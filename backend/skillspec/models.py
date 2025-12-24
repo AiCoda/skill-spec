@@ -101,6 +101,39 @@ SEMVER_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 
 # Model definitions
 
+class ProgressiveDisclosure(BaseModel):
+    """
+    v1.2: Token budget configuration for progressive disclosure (agentskills.io pattern).
+
+    Defines token limits for different disclosure levels:
+    - metadata_tokens: ~100 tokens for metadata loaded at startup
+    - instructions_tokens: <5000 tokens for main instructions
+    - max_lines: <500 lines for SKILL.md file
+    """
+
+    metadata_tokens: int = Field(
+        default=100,
+        ge=50,
+        le=200,
+        description="Target tokens for metadata section (~100 tokens recommended)"
+    )
+    instructions_tokens: int = Field(
+        default=2000,
+        ge=500,
+        le=5000,
+        description="Target tokens for instructions section (<5000 tokens recommended)"
+    )
+    max_lines: int = Field(
+        default=500,
+        ge=100,
+        le=1000,
+        description="Maximum lines for main SKILL.md file (<500 lines recommended)"
+    )
+
+    class Config:
+        extra = "forbid"
+
+
 class MetaConfig(BaseModel):
     """Meta configuration for the spec."""
 
@@ -112,6 +145,14 @@ class MetaConfig(BaseModel):
         default=MixedLanguageStrategy.UNION,
         description="Strategy for mixed language validation"
     )
+    agentskills_compat: bool = Field(
+        default=False,
+        description="v1.2: Enable agentskills.io compatibility mode"
+    )
+    progressive_disclosure: Optional[ProgressiveDisclosure] = Field(
+        default=None,
+        description="v1.2: Token budget configuration for progressive disclosure"
+    )
 
     class Config:
         extra = "forbid"
@@ -122,11 +163,14 @@ class SkillMetadata(BaseModel):
     Core skill metadata (Section 1).
 
     Defines the identity and ownership of a skill.
+    v1.2 adds agentskills.io compatibility fields.
     """
 
     name: str = Field(
         ...,
-        description="Kebab-case skill name (verb-object pattern)",
+        min_length=1,
+        max_length=64,
+        description="Kebab-case skill name (1-64 chars, agentskills.io compliant)",
         examples=["extract-api-contract", "code-review-assistant"]
     )
     version: str = Field(
@@ -136,22 +180,61 @@ class SkillMetadata(BaseModel):
     purpose: str = Field(
         ...,
         min_length=10,
-        max_length=500,
-        description="Single sentence purpose statement"
+        max_length=1024,
+        description="Single sentence purpose statement. Maps to 'description' in agentskills.io (1-1024 chars)"
     )
     owner: str = Field(
         ...,
         min_length=1,
         description="Team or individual responsible"
     )
+    # v1.1 fields
+    category: Optional[str] = Field(
+        default=None,
+        description="v1.1: Skill category for classification"
+    )
+    complexity: Optional[str] = Field(
+        default="standard",
+        description="v1.1: Complexity level (low, standard, advanced)"
+    )
+    tools_required: Optional[List[str]] = Field(
+        default=None,
+        description="v1.1: Tools/capabilities this skill needs"
+    )
+    personas: Optional[List[str]] = Field(
+        default=None,
+        description="v1.1: Roles that benefit from this skill"
+    )
+    # v1.2 agentskills.io fields
+    license: Optional[str] = Field(
+        default=None,
+        description="v1.2 (agentskills.io): SPDX license identifier or reference to LICENSE file"
+    )
+    compatibility: Optional[str] = Field(
+        default=None,
+        max_length=500,
+        description="v1.2 (agentskills.io): Environment requirements (max 500 chars)"
+    )
+    allowed_tools: Optional[List[str]] = Field(
+        default=None,
+        description="v1.2 (agentskills.io): Pre-approved tools for execution (experimental)"
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="v1.2 (agentskills.io): Custom key-value properties beyond the spec"
+    )
 
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
-        """Validate skill name follows kebab-case pattern."""
+        """Validate skill name follows kebab-case pattern and length constraints."""
         if not KEBAB_CASE_PATTERN.match(v):
             raise ValueError(
                 f"Skill name must be kebab-case (e.g., 'extract-api-contract'), got: {v}"
+            )
+        if len(v) > 64:
+            raise ValueError(
+                f"Skill name must be 1-64 characters (agentskills.io), got: {len(v)}"
             )
         return v
 
@@ -163,6 +246,29 @@ class SkillMetadata(BaseModel):
             raise ValueError(
                 f"Version must follow semver (e.g., '1.0.0'), got: {v}"
             )
+        return v
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: Optional[str]) -> Optional[str]:
+        """Validate category is one of the allowed values."""
+        if v is None:
+            return v
+        allowed = ["documentation", "analysis", "generation", "transformation",
+                   "validation", "orchestration", "other"]
+        if v not in allowed:
+            raise ValueError(f"Category must be one of {allowed}, got: {v}")
+        return v
+
+    @field_validator("complexity")
+    @classmethod
+    def validate_complexity(cls, v: Optional[str]) -> Optional[str]:
+        """Validate complexity is one of the allowed values."""
+        if v is None:
+            return v
+        allowed = ["low", "standard", "advanced"]
+        if v not in allowed:
+            raise ValueError(f"Complexity must be one of {allowed}, got: {v}")
         return v
 
     class Config:
@@ -620,9 +726,11 @@ class SkillSpec(BaseModel):
       decision_rules, steps, output_contract, failure_modes
     - Coverage Sections (1 required): edge_cases
     - Context Sections (1 optional): context
+
+    v1.2 adds agentskills.io compatibility (https://agentskills.io/specification)
     """
 
-    spec_version: Literal["skill-spec/1.0", "skill-spec/1.1"] = Field(
+    spec_version: Literal["skill-spec/1.0", "skill-spec/1.1", "skill-spec/1.2"] = Field(
         default="skill-spec/1.0",
         description="Schema version identifier"
     )

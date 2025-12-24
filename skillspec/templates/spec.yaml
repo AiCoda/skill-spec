@@ -1,17 +1,13 @@
-# Skill-Spec Template v1.1
+# Skill-Spec Template v1.2
 # Fill in all sections marked with TODO
 # Run: skillspec validate <name> --strict
 #
-# New in v1.1:
-# - triggers: When to activate this skill (Superpowers-style)
-# - boundaries: Will/will_not declarations (SuperClaude-style)
-# - anti_patterns: Common mistakes and rationalizations
-# - complexity/tools_required/personas in skill metadata
-# - token_budget in _meta
-# - behavioral_flow as alternative to steps
-# - format: full | minimal support
+# Features:
+# - agentskills.io compatibility (https://agentskills.io/specification)
+# - Anthropic skill-creator patterns (https://github.com/anthropics/skills)
+# - Superpowers and SuperClaude patterns support
 
-spec_version: "skill-spec/1.1"
+spec_version: "skill-spec/1.2"
 
 # Meta configuration (optional)
 _meta:
@@ -19,6 +15,12 @@ _meta:
   mixed_language_strategy: "union"  # union | segment_detect | primary
   format: "full"  # full | minimal (minimal requires only: skill, inputs, decision_rules, output_contract, edge_cases)
   token_budget: 500  # Target word count for generated SKILL.md (frequent: <200, standard: <500)
+  agentskills_compat: false  # v1.2: Enable agentskills.io compatibility mode
+  # v1.2: Progressive disclosure settings (agentskills.io pattern)
+  # progressive_disclosure:
+  #   metadata_tokens: 100    # ~100 tokens for metadata loaded at startup
+  #   instructions_tokens: 2000  # <5000 tokens for main instructions
+  #   max_lines: 500          # <500 lines for SKILL.md
 
 # ============================================================================
 # CORE SECTIONS (8 required for full format, 5 for minimal)
@@ -26,12 +28,12 @@ _meta:
 
 # 1. Skill Metadata (required)
 skill:
-  name: "TODO-verb-object"  # kebab-case, e.g., "extract-api-contract"
+  name: "TODO-verb-object"  # kebab-case, 1-64 chars (agentskills.io compliant)
   version: "1.0.0"
-  purpose: "TODO: Single sentence describing what this skill does"
+  purpose: "TODO: Single sentence describing what this skill does (1-1024 chars)"
   owner: "TODO-team-name"
 
-  # New in v1.1: Enhanced metadata
+  # Classification
   category: "TODO-category"  # documentation | analysis | generation | transformation | validation | orchestration
   complexity: "standard"     # low | standard | advanced
   tools_required:            # Claude Code tools this skill needs
@@ -49,7 +51,18 @@ skill:
     # - qa-specialist
     # - security-engineer
 
-# 2. Triggers (new in v1.1, recommended)
+  # agentskills.io compatibility fields (optional)
+  # license: "Apache-2.0"    # SPDX identifier or "LICENSE" to reference bundled file
+  # compatibility: "Requires Python 3.9+"  # Environment requirements (max 500 chars)
+  # allowed_tools:           # Pre-approved tools (experimental, space-delimited in SKILL.md)
+  #   - Read
+  #   - Write
+  #   - Bash
+  # metadata:                # Custom key-value properties
+  #   author: "your-name"
+  #   homepage: "https://example.com"
+
+# 2. Triggers (recommended)
 # When should AI activate this skill? Use "Use when..." style from Superpowers
 triggers:
   use_when:
