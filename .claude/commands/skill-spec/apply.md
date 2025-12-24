@@ -1,6 +1,6 @@
 ---
 name: "Skill-Spec: Apply"
-description: "Generate SKILL.md and implementation artifacts from spec.yaml"
+description: "Generate SKILL.md and implementation artifacts from spec.yaml (v1.2 with agentskills.io support)"
 ---
 
 <!-- SKILL-SPEC:START -->
@@ -121,15 +121,22 @@ description: "Generate SKILL.md and implementation artifacts from spec.yaml"
 | Spec Section | SKILL.md Section |
 |--------------|------------------|
 | skill.name | YAML frontmatter: name |
-| skill.purpose | ## Purpose |
+| skill.purpose | YAML frontmatter: description |
+| skill.license | YAML frontmatter: license (v1.2) |
+| skill.compatibility | YAML frontmatter: compatibility (v1.2) |
+| skill.allowed_tools | YAML frontmatter: allowed-tools (v1.2) |
 | inputs | ## Inputs |
 | preconditions | ## Prerequisites |
 | non_goals | ## What This Skill Does NOT Do |
+| triggers | ## Triggers (v1.1) |
+| boundaries | ## Boundaries (v1.1) |
 | decision_rules | ## Decision Criteria |
 | steps | ## Workflow |
+| behavioral_flow | ## Behavioral Flow (v1.1) |
 | edge_cases | ## Edge Cases |
 | output_contract | ## Output Format |
 | failure_modes | ## Error Handling |
+| anti_patterns | ## Anti-Patterns (v1.1) |
 | context.works_with | ## Works Well With |
 | examples | ## Examples |
 

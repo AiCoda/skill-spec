@@ -1,6 +1,6 @@
 ---
 name: "Skill-Spec: Proposal"
-description: "Create a new skill spec through interactive requirements gathering and validation"
+description: "Create a new skill spec through interactive requirements gathering and validation (v1.2 with agentskills.io support)"
 ---
 
 <!-- SKILL-SPEC:START -->
@@ -26,11 +26,11 @@ description: "Create a new skill spec through interactive requirements gathering
 
 3. **Collect: skill (Metadata)**
    ```
-   What should '<name>' do? (one sentence, 10-200 chars)
+   What should '<name>' do? (one sentence, 10-1024 chars for agentskills.io compatibility)
    Who owns this skill?
    ```
 
-   **v1.1 Enhanced Metadata** (ask these additional questions):
+   **Enhanced Metadata** (ask these additional questions):
    ```
    What category? (documentation | analysis | generation | transformation | validation | orchestration)
    What complexity level? (low | standard | advanced)
@@ -38,7 +38,15 @@ description: "Create a new skill spec through interactive requirements gathering
    What roles/personas benefit from this skill? (developer, architect, technical-writer, qa-specialist...)
    ```
 
-4. **Collect: triggers (NEW v1.1 - from Superpowers)**
+   **v1.2 agentskills.io Fields** (optional but recommended):
+   ```
+   What license? (SPDX identifier, e.g., Apache-2.0, MIT, or "LICENSE" for bundled file)
+   Any environment requirements? (e.g., "Requires Python 3.9+", max 500 chars)
+   Pre-approved tools for execution? (e.g., Read, Write, Bash - experimental)
+   Any custom metadata? (key-value pairs for additional properties)
+   ```
+
+4. **Collect: triggers (from Superpowers)**
    ```
    When should AI activate this skill? (use_when conditions)
    - "User requests..."
@@ -69,7 +77,7 @@ description: "Create a new skill spec through interactive requirements gathering
    What should this skill explicitly NOT do?
    ```
 
-8. **Collect: boundaries (NEW v1.1 - from SuperClaude)**
+8. **Collect: boundaries (from SuperClaude)**
    ```
    What WILL this skill do? (explicit capabilities)
    - "Extract documentation from code comments"
@@ -93,7 +101,7 @@ description: "Create a new skill spec through interactive requirements gathering
     What's the execution flow?
     ```
 
-11. **Collect: behavioral_flow (NEW v1.1 - from SuperClaude, optional)**
+11. **Collect: behavioral_flow (from SuperClaude, optional)**
     ```
     Want to describe high-level behavioral phases? (alternative/supplement to steps)
 
@@ -126,7 +134,7 @@ description: "Create a new skill spec through interactive requirements gathering
     - covers_rule: which decision_rule this tests
     - covers_failure: which failure_mode this tests
 
-15. **Collect: anti_patterns (NEW v1.1 - from Superpowers)**
+15. **Collect: anti_patterns (from Superpowers)**
     ```
     What mistakes might AI make when using this skill?
     - pattern: "Copying source code directly as documentation"
@@ -162,11 +170,13 @@ description: "Create a new skill spec through interactive requirements gathering
     - content_language: en | zh | auto
     - format: full | minimal
     - token_budget: target word count for SKILL.md (default: 500)
+    - agentskills_compat: enable strict agentskills.io validation? (true/false)
+    - progressive_disclosure: token budgets for metadata/instructions/lines?
     ```
 
 19. **Generate and Review**
     - Generate complete spec.yaml with all collected info
-    - Include `spec_version: "skill-spec/1.1"`
+    - Include `spec_version: "skill-spec/1.2"`
     - Show spec to user in code block
     - Ask: "Does this look correct? Any adjustments?"
     - Make adjustments if requested
@@ -229,28 +239,38 @@ description: "Create a new skill spec through interactive requirements gathering
     2. Deploy (publish): /skill-spec:deploy <name>
     ```
 
-**Field Reference (v1.1)**
+**Field Reference (v1.2)**
 
 ```yaml
-spec_version: "skill-spec/1.1"
+spec_version: "skill-spec/1.2"
 
 _meta:                              # optional
   content_language: en | zh | auto
   mixed_language_strategy: union | segment_detect | primary
-  format: full | minimal            # NEW v1.1
-  token_budget: 500                 # NEW v1.1: target word count for SKILL.md
+  format: full | minimal
+  token_budget: 500                 # target word count for SKILL.md
+  agentskills_compat: false         # v1.2: enable agentskills.io validation
+  progressive_disclosure:           # v1.2: token budgets (agentskills.io pattern)
+    metadata_tokens: 100            # ~100 tokens for metadata
+    instructions_tokens: 2000       # <5000 tokens for instructions
+    max_lines: 500                  # <500 lines for SKILL.md
 
 skill:                              # required
-  name: kebab-case                  # ^[a-z][a-z0-9]*(-[a-z0-9]+)*$
+  name: kebab-case                  # 1-64 chars, ^[a-z][a-z0-9]*(-[a-z0-9]+)*$
   version: "1.0.0"                  # semver
-  purpose: string                   # 10-200 chars
+  purpose: string                   # 10-1024 chars (agentskills.io: 'description')
   owner: string
-  category: string                  # NEW v1.1: documentation|analysis|generation|...
-  complexity: string                # NEW v1.1: low|standard|advanced
-  tools_required: [string]          # NEW v1.1: file_read, file_write, search, web_access, etc.
-  personas: [string]                # NEW v1.1: developer, architect, etc.
+  category: string                  # documentation|analysis|generation|...
+  complexity: string                # low|standard|advanced
+  tools_required: [string]          # file_read, file_write, search, web_access, etc.
+  personas: [string]                # developer, architect, etc.
+  # v1.2 agentskills.io fields
+  license: string                   # SPDX identifier (e.g., "Apache-2.0", "MIT")
+  compatibility: string             # environment requirements (max 500 chars)
+  allowed_tools: [string]           # pre-approved tools (experimental)
+  metadata: {key: value}            # custom properties
 
-triggers:                           # NEW v1.1 (from Superpowers)
+triggers:                           # from Superpowers
   use_when: [string]                # conditions that should trigger this skill
   do_not_use_when: [string]         # conditions when NOT to use
 
@@ -266,7 +286,7 @@ inputs:                             # required, min 1
 preconditions: [string]             # required, min 1
 non_goals: [string]                 # required, min 1
 
-boundaries:                         # NEW v1.1 (from SuperClaude)
+boundaries:                         # from SuperClaude
   will: [string]                    # explicit capabilities
   will_not: [string]                # explicit limitations
 
@@ -288,7 +308,7 @@ steps:                              # required, min 1
     based_on: [string]              # optional
     condition: string               # optional
 
-behavioral_flow:                    # NEW v1.1 (from SuperClaude), optional
+behavioral_flow:                    # from SuperClaude, optional
   - phase: string                   # analyze, generate, validate, etc.
     description: string
     key_actions: [string]
@@ -311,7 +331,7 @@ edge_cases:                         # required, min 1
     covers_rule: string             # optional
     covers_failure: string          # optional
 
-anti_patterns:                      # NEW v1.1 (from Superpowers), optional
+anti_patterns:                      # from Superpowers, optional
   mistakes:
     - pattern: string
       why_bad: string
@@ -324,18 +344,29 @@ anti_patterns:                      # NEW v1.1 (from Superpowers), optional
 context:                            # optional
   works_with: [{skill, reason}]
   prerequisites: [string]
-  scenarios: [{name, trigger, description}]  # trigger is NEW v1.1
+  scenarios: [{name, trigger, description}]
 
 examples:                           # optional
   - name: string
-    scenario: string                # NEW v1.1
-    trigger: string                 # NEW v1.1
+    scenario: string
+    trigger: string
     input: any
     output: any
     explanation: string             # optional
 ```
 
-**v1.1 New Sections Quick Reference**
+**v1.2 New Fields Quick Reference (agentskills.io)**
+
+| Field | Location | Purpose |
+|-------|----------|---------|
+| `license` | skill | SPDX license identifier |
+| `compatibility` | skill | Environment requirements (max 500 chars) |
+| `allowed_tools` | skill | Pre-approved tools for execution |
+| `metadata` | skill | Custom key-value properties |
+| `agentskills_compat` | _meta | Enable strict agentskills.io validation |
+| `progressive_disclosure` | _meta | Token budgets for disclosure levels |
+
+**v1.1 Sections Quick Reference**
 
 | Section | Source | Purpose |
 |---------|--------|---------|
