@@ -152,18 +152,45 @@ SECTION_DEFINITIONS = {
 }
 
 # Alternative section names mapping
+# Maps lowercase alternative names to canonical Anthropic section names
 SECTION_ALIASES = {
-    "usage": "When to Use",
+    # Description alternatives
+    "purpose": "Description",
+    "overview": "Description",
+    "about": "Description",
+    # Instructions alternatives
+    "workflow": "Instructions",
+    "steps": "Instructions",
+    "how it works": "Instructions",
+    "usage": "Instructions",
     "how to use": "When to Use",
     "use cases": "When to Use",
+    # Limitations alternatives
+    "what this skill does not do": "Limitations",
+    "non-goals": "Limitations",
+    "non goals": "Limitations",
+    "exclusions": "Limitations",
+    "out of scope": "Limitations",
+    # When to Use alternatives
+    "triggers": "When to Use",
+    "when to use this": "When to Use",
+    "activation": "When to Use",
+    # Examples alternatives
     "example": "Examples",
     "sample": "Examples",
+    "samples": "Examples",
+    # Edge Cases alternatives
     "edge case": "Edge Cases",
     "boundary conditions": "Edge Cases",
+    "special cases": "Edge Cases",
+    # Error Codes alternatives
     "errors": "Error Codes",
+    "error handling": "Error Codes",
     "failure modes": "Error Codes",
+    # Related Skills alternatives
     "related": "Related Skills",
     "see also": "Related Skills",
+    "works well with": "Related Skills",
 }
 
 

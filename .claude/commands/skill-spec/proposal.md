@@ -185,12 +185,24 @@ description: "Create a new skill spec through interactive requirements gathering
     - Create directory: `skillspec/drafts/<name>/`
     - Write spec.yaml to the directory
 
-21. **Run strict validation**
+21. **Lint YAML format** (CRITICAL - prevents format errors)
+    ```bash
+    skillspec lint <name>
+    ```
+    - If lint fails with YAML syntax error:
+      - DO NOT proceed to validation
+      - Re-read the spec.yaml file you just wrote
+      - Fix the YAML syntax issues (usually indentation)
+      - Re-write the fixed content
+      - Run lint again until it passes
+    - If lint passes, proceed to validation
+
+22. **Run strict validation**
     ```bash
     skillspec validate <name> --strict
     ```
 
-22. **Parse and explain validation results**
+23. **Parse and explain validation results**
     For each error/warning, explain which layer:
     - **Layer 1 (Schema)**: Missing required fields, type mismatches
     - **Layer 2 (Quality)**: Forbidden patterns, vague language
@@ -198,7 +210,7 @@ description: "Create a new skill spec through interactive requirements gathering
     - **Layer 4 (Consistency)**: Cross-reference issues, broken step chains
     - **Layer 5 (Compliance)**: Policy violations (if configured)
 
-23. **Provide fix suggestions**
+24. **Provide fix suggestions**
     For each issue, suggest specific fixes:
     ```
     ERROR: Forbidden pattern "try to" detected
@@ -215,16 +227,16 @@ description: "Create a new skill spec through interactive requirements gathering
     Apply this fix? [y/n]
     ```
 
-24. **Auto-fix common issues**
+25. **Auto-fix common issues**
     - Missing `is_default: true` on fallback rule
     - Missing edge cases for defined failure modes
     - Missing required sections with sensible defaults
 
-25. **Re-validate until passing**
+26. **Re-validate until passing**
     - If fixes applied, re-run validation
     - Repeat until all errors resolved
 
-26. **Show completion summary**
+27. **Show completion summary**
     ```
     Validation Summary:
     - Schema: PASS

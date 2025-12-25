@@ -116,29 +116,26 @@ description: "Generate SKILL.md and implementation artifacts from spec.yaml (v1.
    3. Deploy: /skill-spec:deploy <name>
    ```
 
-**Section Mapping**
+**Section Mapping** (Anthropic Format Compliant)
 
-| Spec Section | SKILL.md Section |
-|--------------|------------------|
-| skill.name | YAML frontmatter: name |
-| skill.purpose | YAML frontmatter: description |
-| skill.license | YAML frontmatter: license (v1.2) |
-| skill.compatibility | YAML frontmatter: compatibility (v1.2) |
-| skill.allowed_tools | YAML frontmatter: allowed-tools (v1.2) |
-| inputs | ## Inputs |
-| preconditions | ## Prerequisites |
-| non_goals | ## What This Skill Does NOT Do |
-| triggers | ## Triggers (v1.1) |
-| boundaries | ## Boundaries (v1.1) |
-| decision_rules | ## Decision Criteria |
-| steps | ## Workflow |
-| behavioral_flow | ## Behavioral Flow (v1.1) |
-| edge_cases | ## Edge Cases |
-| output_contract | ## Output Format |
-| failure_modes | ## Error Handling |
-| anti_patterns | ## Anti-Patterns (v1.1) |
-| context.works_with | ## Works Well With |
-| examples | ## Examples |
+| Spec Section | SKILL.md Section | Anthropic Requirement |
+|--------------|------------------|----------------------|
+| skill.name | YAML frontmatter: name | required |
+| skill.purpose | ## Description | required |
+| skill.license | YAML frontmatter: license (v1.2) | optional |
+| skill.compatibility | YAML frontmatter: compatibility (v1.2) | optional |
+| skill.allowed_tools | YAML frontmatter: allowed-tools (v1.2) | optional |
+| triggers | ## When to Use | recommended |
+| inputs | ## Inputs | - |
+| preconditions | ## Prerequisites | - |
+| non_goals | ## Limitations | required |
+| decision_rules | ## Decision Criteria | - |
+| steps | ## Instructions | required |
+| edge_cases | ## Edge Cases | recommended |
+| output_contract | ## Output Format | - |
+| failure_modes | ## Error Codes | recommended |
+| examples | ## Examples | recommended |
+| context.works_with | ## Related Skills | recommended |
 
 **Preservation Protocol**
 
